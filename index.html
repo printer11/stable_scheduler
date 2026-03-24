@@ -882,6 +882,31 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
     </div>
   </div>
 
+  <!-- MODAL: ZATWIERDŹ Z KONIEM -->
+  <div class="overlay" x-show="showConfirmModal" @click.self="showConfirmModal=false" x-cloak>
+    <div class="modal">
+      <div class="modal-pill"></div>
+      <div class="modal-title epi">Zatwierdź rezerwację</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:16px" x-text="confirmTarget?(confirmTarget.userName||confirmTarget.userEmail)+' · '+fmtTime(confirmTarget.startTime,0)+' · '+lName(confirmTarget.location):''"></div>
+      <div class="frow">
+        <div class="flbl">Przypisz konia</div>
+        <select class="fsel" x-model="confirmHorse">
+          <option value="">— bez konia —</option>
+          <template x-for="h in horses" :key="h">
+            <option :value="h"
+              :disabled="isHorseBusy(h, confirmTarget?.date, confirmTarget?.startTime, confirmTarget?.duration, confirmTarget?.id)"
+              x-text="isHorseBusy(h, confirmTarget?.date, confirmTarget?.startTime, confirmTarget?.duration, confirmTarget?.id) ? h+' (zajęty)' : h">
+            </option>
+          </template>
+        </select>
+      </div>
+      <div class="mact">
+        <button class="btn-cancel" @click="showConfirmModal=false">Anuluj</button>
+        <button class="btn-save" @click="doConfirm()">✓ Zatwierdź</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: ODRZUĆ Z WIADOMOŚCIĄ -->
   <div class="overlay" x-show="showRejectModal" @click.self="showRejectModal=false" x-cloak>
     <div class="modal">
@@ -1050,6 +1075,7 @@ fbAuth.onAuthStateChanged(async user=>{
       window._fbProfile = {uid:user.uid, email:user.email, ...doc.data()};
       document.getElementById('login').classList.remove('on');
       document.getElementById('app').classList.add('on');
+      window._fbInitialView = window._fbProfile.role==='admin' ? 'admin' : 'profile';
       document.dispatchEvent(new CustomEvent('fbReady',{detail:window._fbProfile}));
     } else {
       // profil nie istnieje — możliwe że konto właśnie tworzone przez admina
@@ -1064,7 +1090,7 @@ fbAuth.onAuthStateChanged(async user=>{
 // ══ ALPINE APP ══
 function app(){
   return {
-    view:'calendar',
+    view: window._fbInitialView||'calendar',
     weekView:false,
     date:new Date(),
     currentUser:{},
@@ -1084,6 +1110,7 @@ function app(){
     showModal:false, editId:null,
     form:{type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:''},
     showPlaceModal:false, editPlaceB:null, editPlaceLoc:'gorka',
+    showConfirmModal:false, confirmTarget:null, confirmHorse:'',
     showRejectModal:false, rejectTarget:null, rejectMsg:'',
     showUserMenu:false,
     showUsersPanel:false,
@@ -1120,6 +1147,7 @@ function app(){
     },
 
     async _start(){
+      if(window._fbInitialView){ this.view=window._fbInitialView; window._fbInitialView=null; }
       try{
         await this.loadHorses();
         await this.loadUsers();
@@ -1299,6 +1327,13 @@ function app(){
     booksAtDate(h,iso){
       return this.reservations.filter(r=>r.date===iso&&r.startTime<=h&&(r.startTime+r.duration/60)>h&&r.status!=='rejected');
     },
+    isHorseBusy(horse,date,startTime,duration,excludeId){
+      if(!horse) return false;
+      return this.reservations.some(r=>
+        r.id!==excludeId && r.horse===horse && r.date===date && r.status!=='rejected' &&
+        r.startTime<(startTime+duration/60) && (r.startTime+r.duration/60)>startTime
+      );
+    },
     pendingList(){return this.reservations.filter(r=>r.status==='pending')},
     lName(id){return this.locs.find(l=>l.id===id)?.name||id},
     tLabel(t){return{pensjonat:'Pensjonat',lekcja:'Lekcja',blokada:'Blokada'}[t]||t},
@@ -1324,33 +1359,51 @@ function app(){
 
     async save(){
       const isAdmin=this.currentUser.role==='admin';
+      const horse=isAdmin?(this.form.horse||''):(this.currentUser.horse||'');
+      const startTime=this.form.startTime;
+      const duration=parseInt(this.form.duration)||60;
+      const date=this.dateKey();
+      if(horse && this.isHorseBusy(horse,date,startTime,duration,this.editId||null)){
+        this.toast('❌ Ten koń ma już rezerwację w tym czasie!');
+        return;
+      }
       const r={
-        id: this.editId||Date.now().toString(),
-        date: this.dateKey(),
-        type: isAdmin?this.form.type:(this.currentUser.role==='student'?'lekcja':'pensjonat'),
-        startTime: this.form.startTime,
-        duration: parseInt(this.form.duration)||60,
-        location: this.form.location,
-        note: this.form.note,
-        horse: isAdmin?(this.form.horse||''):(this.currentUser.horse||''),
-        userEmail: this.currentUser.email,
-        userName:  this.fullName(this.currentUser)||this.currentUser.email,
-        status: isAdmin?'confirmed':'pending',
-        createdAt: new Date().toISOString(),
+        id:this.editId||Date.now().toString(), date,
+        type:isAdmin?this.form.type:(this.currentUser.role==='student'?'lekcja':'pensjonat'),
+        startTime, duration, location:this.form.location, note:this.form.note, horse,
+        userEmail:this.currentUser.email,
+        userName:this.fullName(this.currentUser)||this.currentUser.email,
+        status:isAdmin?'confirmed':'pending',
+        createdAt:new Date().toISOString(),
       };
       await this.putDB(r);
       this.showModal=false;
       this.toast(isAdmin?'✅ Zapisano':'⏳ Prośba wysłana — czeka na zatwierdzenie');
     },
 
-    async confirm(b){
-      const upd={...b, status:'confirmed'};
+    // modal do zatwierdzania z mozliwoscia przypisania konia
+    openConfirmModal(b){
+      this.confirmTarget=b;
+      this.confirmHorse=b.horse||'';
+      this.showConfirmModal=true;
+    },
+    async doConfirm(){
+      const b=this.confirmTarget;
+      const horse=this.confirmHorse||b.horse||'';
+      if(horse && this.isHorseBusy(horse,b.date,b.startTime,b.duration,b.id)){
+        this.toast('❌ Ten koń ma już zatwierdzoną rezerwację w tym czasie!');
+        return;
+      }
+      const upd={...b, status:'confirmed', horse};
       await this.putDB(upd);
       await this.pushNotif(b.userEmail,{type:'accepted',bookingDate:b.date,
         bookingTime:this.fmtTime(b.startTime,0)+' – '+this.fmtTime(b.startTime,b.duration),
-        bookingLoc:this.lName(b.location),horse:b.horse||'',message:''});
+        bookingLoc:this.lName(b.location),horse:horse,message:''});
+      this.showConfirmModal=false;
+      this.confirmTarget=null;
       this.toast('✅ Zatwierdzone');
     },
+    async confirm(b){ this.openConfirmModal(b); },
     reject(b){
       this.rejectTarget=b; this.rejectMsg='';
       this.showRejectModal=true;
