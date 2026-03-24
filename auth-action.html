@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konik Dzieciom — Ustawienie Hasła</title>
+  <script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    :root{
+      --bg:#f3f6f2;
+      --card:#ffffff;
+      --panel:#f8fbf8;
+      --text:#1f2721;
+      --muted:#68746d;
+      --line:#d9e3dc;
+      --line-strong:#bccdc3;
+      --green:#1c7c54;
+      --green-soft:#e5f4ec;
+      --green-strong:#0f5d3a;
+      --red:#ba1a1a;
+      --red-soft:#ffebeb;
+      --amber:#7b5900;
+      --amber-soft:#fff4d6;
+      --radius:22px;
+      --shadow:0 24px 60px rgba(15,36,24,0.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Manrope,system-ui,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(28,124,84,0.08), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(123,89,0,0.08), transparent 22%),
+        var(--bg);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .shell{
+      width:min(100%, 560px);
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:32px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .hero{
+      padding:28px 28px 20px;
+      background:linear-gradient(180deg, rgba(229,244,236,0.85), rgba(255,255,255,0.92));
+      border-bottom:1px solid var(--line);
+    }
+    .brand{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.78);
+      border:1px solid var(--line);
+      color:var(--green);
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+    }
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 0 6px rgba(28,124,84,0.12);
+    }
+    h1{
+      margin:18px 0 8px;
+      font-size:34px;
+      line-height:1.02;
+      letter-spacing:-0.03em;
+      font-weight:900;
+    }
+    .lead{
+      margin:0;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.55;
+    }
+    .body{
+      padding:24px 28px 28px;
+    }
+    .status{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      margin-bottom:18px;
+    }
+    .status-icon{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      font-size:16px;
+      font-weight:800;
+    }
+    .status.success{background:var(--green-soft);border-color:rgba(28,124,84,0.18)}
+    .status.success .status-icon{background:rgba(28,124,84,0.14);color:var(--green)}
+    .status.error{background:var(--red-soft);border-color:rgba(186,26,26,0.18)}
+    .status.error .status-icon{background:rgba(186,26,26,0.12);color:var(--red)}
+    .status.info{background:var(--panel)}
+    .status.info .status-icon{background:rgba(104,116,109,0.10);color:var(--muted)}
+    .status-title{
+      margin:0 0 3px;
+      font-size:14px;
+      font-weight:800;
+    }
+    .status-text{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+    .reset-box{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:var(--panel);
+    }
+    .label{
+      display:block;
+      margin-bottom:8px;
+      font-size:11px;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+    }
+    .value{
+      margin:0 0 18px;
+      font-size:14px;
+      font-weight:800;
+      color:var(--text);
+    }
+    .field{
+      margin-bottom:14px;
+    }
+    .input{
+      width:100%;
+      padding:14px 15px;
+      border-radius:16px;
+      border:1px solid var(--line-strong);
+      background:#fff;
+      color:var(--text);
+      font:inherit;
+      outline:none;
+      transition:border-color 0.18s, box-shadow 0.18s;
+    }
+    .input:focus{
+      border-color:var(--green);
+      box-shadow:0 0 0 4px rgba(28,124,84,0.09);
+    }
+    .hint{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:20px;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:46px;
+      padding:0 18px;
+      border:none;
+      border-radius:16px;
+      font:inherit;
+      font-size:14px;
+      font-weight:800;
+      text-decoration:none;
+      cursor:pointer;
+      transition:transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+    }
+    .btn:active{transform:scale(0.98)}
+    .btn[disabled]{opacity:0.6;cursor:wait}
+    .btn-primary{background:var(--green);color:#fff}
+    .btn-primary:hover{background:var(--green-strong)}
+    .btn-secondary{background:#fff;color:var(--text);border:1px solid var(--line-strong)}
+    .footer-note{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    [hidden]{display:none!important}
+    @media (max-width:640px){
+      body{padding:14px}
+      .hero,.body{padding-left:18px;padding-right:18px}
+      h1{font-size:28px}
+      .actions{flex-direction:column}
+      .btn{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="brand">
+        <span class="dot"></span>
+        Konik Dzieciom
+      </div>
+      <h1 id="pageTitle">Obsługa linku</h1>
+      <p class="lead" id="pageLead">Trwa weryfikacja linku z wiadomości e-mail.</p>
+    </section>
+
+    <section class="body">
+      <div class="status info" id="statusBox">
+        <div class="status-icon" id="statusIcon">…</div>
+        <div>
+          <p class="status-title" id="statusTitle">Sprawdzanie</p>
+          <p class="status-text" id="statusText">Za chwilę pokażemy właściwy ekran.</p>
+        </div>
+      </div>
+
+      <form class="reset-box" id="resetForm" hidden>
+        <label class="label">Konto</label>
+        <p class="value" id="accountEmail">—</p>
+
+        <div class="field">
+          <label class="label" for="newPassword">Nowe hasło</label>
+          <input class="input" id="newPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Minimum 6 znaków" required>
+        </div>
+
+        <div class="field">
+          <label class="label" for="confirmPassword">Powtórz hasło</label>
+          <input class="input" id="confirmPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Powtórz nowe hasło" required>
+          <p class="hint" id="resetHint">Po zapisaniu hasła wrócisz do aplikacji.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="submitReset" type="submit">Ustaw nowe hasło</button>
+          <a class="btn btn-secondary" id="backLinkReset" href="/">Wróć do aplikacji</a>
+        </div>
+      </form>
+
+      <div class="actions" id="defaultActions" hidden>
+        <a class="btn btn-primary" id="openAppLink" href="/">Otwórz aplikację</a>
+        <a class="btn btn-secondary" href="/">Przejdź do logowania</a>
+      </div>
+
+      <p class="footer-note" id="footerNote">
+        Jeśli link wygasł, wróć do aplikacji i poproś o ponowne wysłanie wiadomości.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const ui = {
+      pageTitle: document.getElementById('pageTitle'),
+      pageLead: document.getElementById('pageLead'),
+      statusBox: document.getElementById('statusBox'),
+      statusIcon: document.getElementById('statusIcon'),
+      statusTitle: document.getElementById('statusTitle'),
+      statusText: document.getElementById('statusText'),
+      resetForm: document.getElementById('resetForm'),
+      accountEmail: document.getElementById('accountEmail'),
+      newPassword: document.getElementById('newPassword'),
+      confirmPassword: document.getElementById('confirmPassword'),
+      resetHint: document.getElementById('resetHint'),
+      submitReset: document.getElementById('submitReset'),
+      defaultActions: document.getElementById('defaultActions'),
+      openAppLink: document.getElementById('openAppLink'),
+      backLinkReset: document.getElementById('backLinkReset'),
+      footerNote: document.getElementById('footerNote')
+    };
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name) || '';
+    }
+
+    function safeContinueUrl() {
+      const raw = getParam('continueUrl');
+      if (!raw) return new URL('/', window.location.origin).toString();
+      try {
+        return new URL(raw, window.location.origin).toString();
+      } catch {
+        return new URL('/', window.location.origin).toString();
+      }
+    }
+
+    function setStatus(kind, title, text) {
+      ui.statusBox.className = `status ${kind}`;
+      ui.statusTitle.textContent = title;
+      ui.statusText.textContent = text;
+      ui.statusIcon.textContent = kind === 'success' ? '✓' : kind === 'error' ? '!' : '…';
+    }
+
+    function showActions() {
+      const target = safeContinueUrl();
+      ui.openAppLink.href = target;
+      ui.backLinkReset.href = target;
+      ui.defaultActions.hidden = false;
+    }
+
+    function showResetForm(email) {
+      ui.accountEmail.textContent = email;
+      ui.backLinkReset.href = safeContinueUrl();
+      ui.resetHint.textContent = getParam('continueUrl')
+        ? 'Po zapisaniu hasła wrócisz do aplikacji.'
+        : 'Po zapisaniu hasła możesz wrócić do aplikacji przyciskiem poniżej.';
+      ui.resetForm.hidden = false;
+    }
+
+    async function handleResetPassword(actionCode) {
+      ui.pageTitle.textContent = 'Ustaw nowe hasło';
+      ui.pageLead.textContent = 'Zmień hasło do konta i wróć do aplikacji.';
+
+      try {
+        const email = await auth.verifyPasswordResetCode(actionCode);
+        setStatus('info', 'Link poprawny', 'Wprowadź nowe hasło dla tego konta.');
+        showResetForm(email);
+      } catch (error) {
+        setStatus('error', 'Link jest nieprawidłowy', 'Ten link resetujący hasło jest błędny albo wygasł. Poproś o wysłanie nowego.');
+        showActions();
+      }
+    }
+
+    async function handleVerifyEmail(actionCode) {
+      ui.pageTitle.textContent = 'Potwierdzenie adresu e-mail';
+      ui.pageLead.textContent = 'Kończymy weryfikację adresu przypisanego do konta.';
+
+      try {
+        await auth.applyActionCode(actionCode);
+        setStatus('success', 'Adres e-mail został potwierdzony', 'Możesz wrócić do aplikacji i zalogować się na swoje konto.');
+      } catch (error) {
+        setStatus('error', 'Nie udało się potwierdzić adresu', 'Ten link weryfikacyjny jest nieprawidłowy albo wygasł.');
+      }
+
+      showActions();
+    }
+
+    async function handleRecoverEmail(actionCode) {
+      ui.pageTitle.textContent = 'Przywracanie adresu e-mail';
+      ui.pageLead.textContent = 'Kończymy odzyskiwanie poprzedniego adresu e-mail konta.';
+
+      try {
+        const info = await auth.checkActionCode(actionCode);
+        await auth.applyActionCode(actionCode);
+        setStatus('success', 'Adres e-mail został przywrócony', `Przywrócono adres: ${info?.data?.email || 'konto użytkownika'}.`);
+      } catch (error) {
+        setStatus('error', 'Nie udało się przywrócić adresu', 'Ten link jest nieprawidłowy albo wygasł.');
+      }
+
+      showActions();
+    }
+
+    ui.resetForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const password = ui.newPassword.value.trim();
+      const confirm = ui.confirmPassword.value.trim();
+      const actionCode = getParam('oobCode');
+
+      if (password.length < 6) {
+        setStatus('error', 'Hasło jest za krótkie', 'Hasło musi mieć co najmniej 6 znaków.');
+        return;
+      }
+
+      if (password !== confirm) {
+        setStatus('error', 'Hasła nie są takie same', 'Wpisz identyczne hasło w obu polach.');
+        return;
+      }
+
+      try {
+        ui.submitReset.disabled = true;
+        setStatus('info', 'Zapisywanie hasła', 'Jeszcze chwila, zapisujemy nowe hasło.');
+        await auth.confirmPasswordReset(actionCode, password);
+        ui.resetForm.hidden = true;
+        setStatus('success', 'Hasło zostało ustawione', 'Możesz wrócić do aplikacji i zalogować się nowym hasłem.');
+        showActions();
+      } catch (error) {
+        ui.submitReset.disabled = false;
+        const code = String(error.code || '');
+        const message =
+          code === 'auth/weak-password'
+            ? 'To hasło jest zbyt słabe. Spróbuj dłuższego.'
+            : 'Nie udało się ustawić nowego hasła. Link mógł wygasnąć.';
+        setStatus('error', 'Reset nie powiódł się', message);
+      }
+    });
+
+    (async function init() {
+      const mode = getParam('mode');
+      const actionCode = getParam('oobCode');
+      const lang = getParam('lang') || 'pl';
+
+      auth.languageCode = lang;
+      ui.openAppLink.href = safeContinueUrl();
+      ui.backLinkReset.href = safeContinueUrl();
+
+      if (!mode || !actionCode) {
+        ui.pageTitle.textContent = 'Nieprawidłowy link';
+        ui.pageLead.textContent = 'Brakuje danych potrzebnych do obsługi tej akcji.';
+        setStatus('error', 'Nieprawidłowy link', 'Ten adres nie zawiera pełnych danych do wykonania akcji.');
+        showActions();
+        return;
+      }
+
+      switch (mode) {
+        case 'resetPassword':
+          await handleResetPassword(actionCode);
+          break;
+        case 'verifyEmail':
+          await handleVerifyEmail(actionCode);
+          break;
+        case 'recoverEmail':
+          await handleRecoverEmail(actionCode);
+          break;
+        default:
+          ui.pageTitle.textContent = 'Nieobsługiwany link';
+          ui.pageLead.textContent = 'Typ akcji z wiadomości e-mail nie jest obsługiwany na tej stronie.';
+          setStatus('error', 'Nieobsługiwany typ akcji', `Otrzymano tryb: ${mode}.`);
+          showActions();
+      }
+    })();
+  </script>
+</body>
+</html>

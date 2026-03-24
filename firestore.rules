@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function currentUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function currentUserExists() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return currentUserExists() && currentUserDoc().data.role == 'admin';
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function currentEmail() {
+      return request.auth.token.email;
+    }
+
+    function isOwnReservation() {
+      return signedIn() && resource.data.userEmail == currentEmail();
+    }
+
+    function isCreatingOwnReservation() {
+      return signedIn() &&
+        request.resource.data.userEmail == currentEmail();
+    }
+
+    function isOwnNotification() {
+      return signedIn() && resource.data.userEmail == currentEmail();
+    }
+
+    function isCreatingOwnNotification() {
+      return signedIn() &&
+        request.resource.data.userEmail == currentEmail();
+    }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isAdmin();
+
+      allow update: if isAdmin() || (
+        isSelf(uid) &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.horse == resource.data.horse &&
+        request.resource.data.createdAt == resource.data.createdAt
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    match /reservations/{reservationId} {
+      allow read: if signedIn();
+
+      allow create: if isAdmin() || (
+        isCreatingOwnReservation() &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.type in ['pensjonat', 'lekcja']
+      );
+
+      allow update: if isAdmin() || (
+        isOwnReservation() &&
+        request.resource.data.userEmail == resource.data.userEmail &&
+        request.resource.data.userName == resource.data.userName &&
+        request.resource.data.date == resource.data.date &&
+        request.resource.data.startTime == resource.data.startTime &&
+        request.resource.data.duration == resource.data.duration &&
+        request.resource.data.location == resource.data.location &&
+        request.resource.data.type == resource.data.type &&
+        request.resource.data.horse == resource.data.horse &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        resource.data.status in ['pending', 'rejected'] &&
+        request.resource.data.status == 'rejected'
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isOwnNotification() || isAdmin();
+
+      allow create: if isAdmin();
+
+      allow update: if isAdmin() || (
+        isOwnNotification() &&
+        request.resource.data.userEmail == resource.data.userEmail &&
+        request.resource.data.type == resource.data.type &&
+        request.resource.data.bookingDate == resource.data.bookingDate &&
+        request.resource.data.bookingTime == resource.data.bookingTime &&
+        request.resource.data.bookingLoc == resource.data.bookingLoc &&
+        request.resource.data.horse == resource.data.horse &&
+        request.resource.data.message == resource.data.message &&
+        request.resource.data.createdAt == resource.data.createdAt
+      );
+
+      allow delete: if isOwnNotification() || isAdmin();
+    }
+
+    match /config/horses {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /config/{documentId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -16,6 +16,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="firebase-config.js"></script>
 <style>
 :root{
   --bg:#f8f9f8;
@@ -278,13 +279,62 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 .apill.no{background:var(--red-bg);color:var(--red);border:1px solid rgba(186,26,26,0.2)}
 .apill.no:active{background:var(--red);color:#fff}
 
-.user-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:11px;box-shadow:var(--shadow)}
+.user-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;display:flex;flex-direction:column;align-items:stretch;gap:14px;box-shadow:var(--shadow)}
 .uc-av{width:42px;height:42px;border-radius:50%;background:var(--primary-bg);border:2px solid var(--primary-border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--primary);flex-shrink:0;overflow:hidden}
 .uc-av img{width:100%;height:100%;object-fit:cover}
 .uc-body{flex:1;min-width:0}
 .uc-email{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
 .uc-controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
 .mini-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:4px 8px;color:var(--text);font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;outline:none;cursor:pointer;-webkit-appearance:none}
+.user-head{display:flex;align-items:center;gap:11px}
+.user-head.clickable{cursor:pointer}
+.user-head-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.user-expand-btn{width:32px;height:32px;border:none;border-radius:10px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s}
+.user-expand-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none}
+.user-admin-row{display:grid;grid-template-columns:minmax(140px,0.8fr) minmax(200px,1.1fr) auto auto;gap:10px;align-items:end}
+.user-field{min-width:0}
+.user-field-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.user-role-select,.user-horse-select{width:100%;min-height:42px;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:700;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Manrope',sans-serif;outline:none;-webkit-appearance:none}
+.user-role-select:focus,.user-horse-select:focus{border-color:var(--primary)}
+.user-horse-box{min-height:42px;padding:6px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);display:flex;align-items:center;gap:8px}
+.user-horse-pill{flex:1;min-width:0;height:100%;display:flex;align-items:center;padding:0 10px;border-radius:9px;background:var(--primary-bg);color:var(--primary);font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-horse-pill.empty{background:transparent;color:var(--text3);font-weight:700}
+.user-icon-btn{width:30px;height:30px;border:none;border-radius:9px;background:var(--bg2);border:1px solid var(--border2);color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0}
+.user-icon-btn.muted{color:var(--text3)}
+.user-act-btn{height:42px;padding:0 14px;border:none;border-radius:12px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+.user-act-btn.save{background:var(--primary);color:#fff}
+.user-act-btn.reset{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(123,89,0,0.2)}
+.user-act-btn.delete{background:var(--red-bg);color:var(--red);border:1px solid rgba(186,26,26,0.2)}
+.user-field.actions-row{display:flex;align-items:end}
+.user-actions{display:flex;gap:10px;flex-wrap:wrap}
+.user-actions .user-act-btn{flex:1}
+.user-act-btn:disabled,.user-icon-btn:disabled{opacity:0.55;cursor:wait}
+.user-booking-panel{margin-top:2px;padding:12px;border:1px solid var(--border2);border-radius:14px;background:linear-gradient(180deg,var(--bg3),rgba(230,244,238,0.38))}
+.user-booking-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}
+.user-booking-card{background:rgba(255,255,255,0.72);border:1px solid var(--border2);border-radius:12px;padding:12px}
+.user-booking-title{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.user-booking-main{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px}
+.user-booking-sub{font-size:12px;color:var(--text2);line-height:1.45}
+.user-booking-status{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800}
+.user-booking-status.confirmed{background:var(--green-bg);color:var(--primary)}
+.user-booking-status.pending{background:var(--amber-bg);color:var(--amber)}
+.user-booking-status.rejected{background:var(--red-bg);color:var(--red)}
+.user-booking-list{display:flex;flex-direction:column;gap:8px}
+.user-booking-item{padding:9px 10px;border-radius:10px;background:rgba(255,255,255,0.72);border:1px solid var(--border2)}
+.user-booking-item-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.user-booking-empty{font-size:12px;color:var(--text3)}
+@media(max-width:760px){
+  .user-admin-row{grid-template-columns:1fr 1fr;align-items:stretch}
+  .user-field.actions-row{grid-column:1/-1}
+  .user-field.actions-row .user-field-lbl{display:none}
+  .user-field.actions-row .user-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .user-field.actions-row .user-actions .user-act-btn.reset{grid-column:1/-1}
+  .user-booking-grid{grid-template-columns:1fr}
+  .user-act-btn{width:100%}
+}
+@media(max-width:560px){
+  .user-admin-row{grid-template-columns:1fr}
+}
 .invite-row{display:flex;gap:8px;margin-bottom:14px}
 .invite-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;outline:none;-webkit-appearance:none;transition:border-color 0.2s}
 .invite-input:focus{border-color:var(--primary)}
@@ -505,7 +555,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
       <button class="lf-pill lf-plac" :class="{on:activeLoc==='plac'}" @click="activeLoc='plac'">Plac</button>
       <button class="lf-pill lf-teren" :class="{on:activeLoc==='teren'}" @click="activeLoc='teren'">Teren</button>
       <button class="lf-pill lf-lonzownik" :class="{on:activeLoc==='lonzownik'&&!weekView}" @click="activeLoc='lonzownik';weekView=false">Lonżownik</button>
-      <button class="lf-pill" :class="{on:weekView}" style="color:#7b39a0" :style="weekView?'background:rgba(123,57,160,0.1);border-color:#7b39a0':''" @click="weekView=!weekView;activeLoc=null">📅 Tydzień</button>
+      <button class="lf-pill" :class="{on:weekView}" style="color:#7b39a0" :style="weekView?'background:rgba(123,57,160,0.1);border-color:#7b39a0':''" @click="weekView=!weekView;activeLoc=null" x-text="weekView ? '📅 Dzień' : '📅 Tydzień'"></button>
     </div>
 
     <!-- DAY GRID -->
@@ -666,7 +716,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 
       <!-- USERS TOGGLE -->
       <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 0 10px;border-top:1px solid var(--border);margin-top:6px" @click="showUsersPanel=!showUsersPanel">
-        <div class="section-title epi" style="margin-bottom:0">Użytkownicy <span style="font-size:13px;font-weight:600;color:var(--text3)" x-text="'('+users.length+')'"></span></div>
+        <div class="section-title epi" style="margin-bottom:0">👤 Użytkownicy <span style="font-size:13px;font-weight:600;color:var(--text3)" x-text="'('+users.length+')'"></span></div>
         <div style="width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:transform 0.2s" :style="showUsersPanel?'transform:rotate(180deg)':''">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -696,28 +746,89 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         </div>
       <template x-for="u in users" :key="u.id">
         <div class="user-card">
-          <div class="uc-av">
-            <img x-show="u.photo" :src="u.photo" alt="">
-            <span x-show="!u.photo" x-text="userInitials(u)"></span>
+          <div class="user-head clickable" @click="toggleUserExpand(u.id)">
+            <div class="uc-av">
+              <img x-show="u.photo" :src="u.photo" alt="">
+              <span x-show="!u.photo" x-text="userInitials(u)"></span>
+            </div>
+            <div class="uc-body">
+              <div class="user-head-meta">
+                <div style="font-size:13px;font-weight:700;color:var(--text)" x-text="fullName(u)||u.email"></div>
+                <button type="button" class="user-expand-btn" :style="expandedUserId===u.id?'transform:rotate(180deg)':''">
+                  <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-top:1px" x-text="u.email"></div>
+            </div>
           </div>
-          <div class="uc-body">
-            <div style="font-size:13px;font-weight:700;color:var(--text)" x-text="fullName(u)||u.email"></div>
-            <div style="font-size:11px;color:var(--text3);margin-top:1px" x-text="u.email"></div>
-            <div class="uc-controls">
-              <select class="mini-select" x-model="u.role" @change="saveUserField(u)">
+          <div class="user-booking-panel" x-show="expandedUserId===u.id" x-transition @click.stop>
+            <div class="user-booking-grid">
+              <div class="user-booking-card">
+                <div class="user-booking-title">Najbliższa Rezerwacja</div>
+                <template x-if="nextUserReservation(u)">
+                  <div>
+                    <div class="user-booking-main" x-text="nextUserReservation(u).date+' · '+fmtTime(nextUserReservation(u).startTime,0)"></div>
+                    <div class="user-booking-sub" x-text="lName(nextUserReservation(u).location)+' · '+tLabel(nextUserReservation(u).type)+(nextUserReservation(u).horse?' · 🐴 '+nextUserReservation(u).horse:'')"></div>
+                    <div class="user-booking-status" :class="nextUserReservation(u).status" x-text="bookingStatusLabel(nextUserReservation(u).status)"></div>
+                  </div>
+                </template>
+                <template x-if="!nextUserReservation(u)">
+                  <div class="user-booking-empty">Brak nadchodzących rezerwacji.</div>
+                </template>
+              </div>
+              <div class="user-booking-card">
+                <div class="user-booking-title">3 Ostatnie Zgłoszenia</div>
+                <div class="user-booking-list" x-show="recentUserReservations(u).length">
+                  <template x-for="b in recentUserReservations(u)" :key="b.id">
+                    <div class="user-booking-item">
+                      <div class="user-booking-item-top">
+                        <div class="user-booking-main" style="font-size:12px;margin-bottom:0" x-text="b.date+' · '+fmtTime(b.startTime,0)"></div>
+                        <div class="user-booking-status" :class="b.status" style="margin-top:0" x-text="bookingStatusLabel(b.status)"></div>
+                      </div>
+                      <div class="user-booking-sub" x-text="lName(b.location)+' · '+tLabel(b.type)+(b.horse?' · 🐴 '+b.horse:'')"></div>
+                    </div>
+                  </template>
+                </div>
+                <div class="user-booking-empty" x-show="!recentUserReservations(u).length">Brak zgłoszeń tego użytkownika.</div>
+              </div>
+            </div>
+          </div>
+          <div class="user-admin-row" @click.stop>
+            <div class="user-field">
+              <div class="user-field-lbl">Rola</div>
+              <select class="user-role-select" x-model="u._draftRole" @change="if(u._draftRole!=='owner'){u._draftHorse='';u._editingHorse=false}">
                 <option value="owner">Właściciel</option>
                 <option value="student">Uczeń</option>
                 <option value="admin">Admin</option>
               </select>
-              <select class="mini-select" x-model="u.horse" @change="saveUserField(u)" x-show="u.role==='owner'">
-                <option value="">Brak konia</option>
-                <template x-for="h in horses" :key="h">
-                  <option :value="h" x-text="h"></option>
-                </template>
-              </select>
+            </div>
+            <div class="user-field" x-show="u._draftRole==='owner'">
+              <div class="user-field-lbl">Koń</div>
+              <div class="user-horse-box" x-show="!u._editingHorse">
+                <div class="user-horse-pill" :class="{'empty': !u.horse}" x-text="u.horse || 'Brak konia'"></div>
+                <button type="button" class="user-icon-btn" :disabled="u._busy" @click="u._editingHorse=true;u._draftHorse=u.horse||''">✎</button>
+              </div>
+              <div class="user-horse-box" x-show="u._editingHorse">
+                <select class="user-horse-select" x-model="u._draftHorse" style="flex:1" :disabled="u._busy">
+                  <option value="">Brak konia</option>
+                  <template x-for="h in horses" :key="h">
+                    <option :value="h" x-text="h"></option>
+                  </template>
+                </select>
+                <button type="button" class="user-icon-btn muted" :disabled="u._busy" @click="u._editingHorse=false;u._draftHorse=u.horse||''">✕</button>
+              </div>
+            </div>
+            <div class="user-field actions-row">
+              <div style="width:100%">
+                <div class="user-field-lbl">Akcje</div>
+                <div class="user-actions">
+                  <button type="button" class="user-act-btn save" :disabled="u._busy" @click="saveUserField(u)" x-text="u._busyAction==='save' ? 'Zapisywanie...' : 'Zapisz'"></button>
+                  <button type="button" class="user-act-btn reset" :disabled="u._busy" @click="resendResetEmail(u)" x-text="u._busyAction==='reset' ? 'Wysyłanie...' : 'Reset hasła'"></button>
+                  <button type="button" class="user-act-btn delete" :disabled="u._busy" @click="removeUser(u)" x-text="u._busyAction==='delete' ? 'Usuwanie...' : 'Usuń'"></button>
+                </div>
+              </div>
             </div>
           </div>
-          <button style="padding:7px 11px;background:var(--red-bg);border:1px solid rgba(186,26,26,0.2);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif" @click="removeUser(u)">Usuń</button>
         </div>
       </template>
       </div>
@@ -738,6 +849,22 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         </template>
         <button class="btn-cancel" style="width:100%;margin-top:4px" @click="horses.push('Nowy koń');saveHorses()">+ Dodaj konia</button>
       </div>
+
+      <!-- NARZĘDZIA BAZY DANYCH -->
+      <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:12px">
+        <div style="background:var(--amber-bg);border:1px solid rgba(123,89,0,0.18);border-radius:var(--r2);padding:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:700;color:var(--amber)">🛠 Osierocone rezerwacje</div>
+            <span x-show="orphanCount>0" style="background:var(--amber);color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:2px 8px" x-text="orphanCount"></span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5">Rezerwacje po usuniętych kontach. Kliknij Sprawdź, potem Usuń.</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-cancel" style="flex:1" @click="findOrphans()">🔍 Sprawdź</button>
+            <button class="apill no" style="flex:1;padding:10px" @click="deleteOrphans()" :disabled="orphanCount===0" x-text="orphanCount>0 ? '🗑 Usuń (' + orphanCount + ')' : 'Brak'"></button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -753,7 +880,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         <div>
           <div style="font-family:'Epilogue',sans-serif;font-size:18px;font-weight:900;color:var(--text)" x-text="fullName(currentUser)||currentUser.email"></div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px" x-text="roleLabel(currentUser.role)"></div>
-          <div style="font-size:12px;color:var(--primary);font-weight:700;margin-top:2px" x-show="currentUser.horse" x-text="'🐴 '+currentUser.horse"></div>
+          <div style="font-size:12px;color:var(--primary);font-weight:700;margin-top:2px" x-show="currentUser.role==='owner' && currentUser.horse" x-text="'🐴 '+currentUser.horse"></div>
         </div>
       </div>
 
@@ -927,7 +1054,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           <template x-for="h in horses" :key="h"><option :value="h" x-text="'🐴 '+h"></option></template>
         </select>
       </div>
-      <div class="frow" x-show="currentUser.role!=='admin' && currentUser.horse">
+      <div class="frow" x-show="currentUser.role==='owner' && currentUser.horse">
         <div class="flbl">Twój koń</div>
         <div class="horse-val">🐴 <span x-text="currentUser.horse"></span></div>
       </div>
@@ -1084,25 +1211,28 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 </div>
 
 <script>
-// ╔═════════════════════════════════════╗
-// ║  FIREBASE CONFIG — wklej swój config  ║
-// ╚═════════════════════════════════════╝
-const firebaseConfig = {
-  apiKey: 'AIzaSyCENLe_Fa7117n0wzwjHsTsh3rF_Bn98k4',
-  authDomain: 'konik-dzieciom.firebaseapp.com',
-  projectId: 'konik-dzieciom',
-  storageBucket: 'konik-dzieciom.firebasestorage.app',
-  messagingSenderId: '550878211370',
-  appId: '1:550878211370:web:4facf44665efd9b2bf4253'
-};
+// firebaseConfig ładowany z firebase-config.js (patrz: <script src="firebase-config.js">)
 
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
 const fbDb  = firebase.firestore();
 
-// Drugi app — do tworzenia kont bez wylogowania admina
-const fbSecondary = firebase.initializeApp(firebaseConfig, 'Secondary');
-const fbAuthSec   = fbSecondary.auth();
+async function callAdminFunction(name, payload){
+  const user = fbAuth.currentUser;
+  if(!user) throw new Error('Brak aktywnej sesji');
+  const token = await user.getIdToken();
+  const resp = await fetch(`/.netlify/functions/${name}`,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+token
+    },
+    body:JSON.stringify(payload||{})
+  });
+  const data = await resp.json().catch(()=>({}));
+  if(!resp.ok) throw new Error(data.error||'Błąd funkcji serwerowej');
+  return data;
+}
 
 // ── AUTH: logowanie ──
 async function doLogin(){
@@ -1137,7 +1267,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 // ── SPLASH TIPS ──
 (()=>{
   const tips=[
-    'AI nie nakarmi konia… ale ogarnie 80% Twojej papierkologii 🐎',
+    'AI nie nakarmi konia… ale ogarnie 80% Twojej papierologii 🐎',
+    'Spokój w stajni zaczyna się od ogarniętego grafiku',
+    'Zamiast ogarniać chaos — ogarniasz jazdy. Resztę robi AI 😉',
     'Mniej klikania, więcej jeżdżenia — AI robi nudne rzeczy za Ciebie',
     'Twoja stajnia działa sprawniej niż galop — sprawdzić, co może AI',
     'AI nie wsiądzie w siodło… ale ogarnie całą resztę 🧠',
@@ -1207,6 +1339,10 @@ function app(){
     showUserMenu:false,
     showUsersPanel:false,
     showHorsesPanel:false,
+    expandedUserId:null,
+    showDbPanel:false,
+    orphanCount:0,
+    _orphanIds:[],
     invEmail:'', invFirstName:'', invLastName:'', invRole:'owner', invHorse:'', invLoading:false,
     profileTab:'notif', resFilter:'all',
     editName:'', editSurname:'',
@@ -1242,6 +1378,7 @@ function app(){
     async _start(){
       if(window._fbInitialView){ this.view=window._fbInitialView; window._fbInitialView=null; }
       try{
+        if(this.currentUser.role!=='owner') this.currentUser.horse='';
         await this.loadHorses();
         await this.loadUsers();
         this._listenReservations();
@@ -1298,7 +1435,62 @@ function app(){
     async loadUsers(){
       if(this.currentUser.role!=='admin') return;
       const snap = await fbDb.collection('users').get();
-      this.users = snap.docs.map(d=>({id:d.id,...d.data()}));
+      this.users = snap.docs.map(d=>this.hydrateUser(d.id, d.data()));
+    },
+    hydrateUser(id, data){
+      const role = data?.role || 'student';
+      const horse = data?.horse || '';
+      return {
+        id,
+        ...data,
+        role,
+        horse,
+        _draftRole: role,
+        _draftHorse: horse,
+        _editingHorse: false,
+        _busy: false,
+        _busyAction: ''
+      };
+    },
+    setUserBusy(u, action){
+      u._busy = !!action;
+      u._busyAction = action || '';
+    },
+    toggleUserExpand(id){
+      this.expandedUserId = this.expandedUserId === id ? null : id;
+    },
+    bookingStatusLabel(status){
+      return {
+        pending:'Oczekuje',
+        confirmed:'Zatwierdzona',
+        rejected:'Odrzucona'
+      }[status] || status || 'Nieznany';
+    },
+    reservationDateTime(r){
+      if(!r?.date) return null;
+      const [year, month, day] = String(r.date).split('-').map(Number);
+      const start = Number(r.startTime || 0);
+      const hours = Math.floor(start);
+      const minutes = Math.round((start - hours) * 60);
+      return new Date(year, (month||1)-1, day||1, hours, minutes, 0, 0);
+    },
+    userReservations(u){
+      return this.reservations.filter(r => r.userEmail === u.email);
+    },
+    nextUserReservation(u){
+      const now = Date.now();
+      const upcoming = this.userReservations(u)
+        .filter(r => r.status !== 'rejected')
+        .map(r => ({r, ts:this.reservationDateTime(r)?.getTime() || 0}))
+        .filter(x => x.ts >= now)
+        .sort((a,b) => a.ts - b.ts);
+      return upcoming[0]?.r || null;
+    },
+    recentUserReservations(u){
+      return this.userReservations(u)
+        .slice()
+        .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))
+        .slice(0,3);
     },
 
     // ─ WRITE ─
@@ -1313,12 +1505,60 @@ function app(){
       await fbDb.collection('config').doc('horses').set({list:this.horses});
     },
     async saveUserField(u){
-      await fbDb.collection('users').doc(u.id).update({role:u.role, horse:u.horse||''});
+      const role = u._draftRole || 'student';
+      const horse = role === 'owner' ? (u._draftHorse || '') : '';
+      try{
+        this.setUserBusy(u, 'save');
+        await fbDb.collection('users').doc(u.id).update({role, horse});
+        u.role = role;
+        u.horse = horse;
+        u._draftRole = role;
+        u._draftHorse = horse;
+        u._editingHorse = false;
+        if(this.currentUser.uid === u.id){
+          this.currentUser.role = role;
+          this.currentUser.horse = horse;
+          window._fbProfile = {...window._fbProfile, role, horse};
+        }
+        await this.loadUsers();
+        this.toast('✅ Zapisano');
+      }catch(e){
+        console.error('saveUserField() error:', e);
+        this.toast('❌ Nie udało się zapisać użytkownika: ' + e.message);
+      }finally{
+        this.setUserBusy(u, '');
+      }
+    },
+    async resendResetEmail(u){
+      try{
+        this.setUserBusy(u, 'reset');
+        const data = await callAdminFunction('admin-resend-reset-email',{
+          uid:u.id,
+          email:u.email
+        });
+        this.toast('✉️ Wysłano mail resetujący hasło na ' + data.email);
+      }catch(e){
+        console.error('resendResetEmail() error:', e);
+        this.toast('❌ Nie udało się wysłać maila: ' + e.message);
+      }finally{
+        this.setUserBusy(u, '');
+      }
     },
     async removeUser(u){
-      await fbDb.collection('users').doc(u.id).delete();
-      this.users = this.users.filter(x=>x.id!==u.id);
-      this.toast('🗑 Usunięto profil użytkownika');
+      try{
+        this.setUserBusy(u, 'delete');
+        const data = await callAdminFunction('admin-delete-user',{
+          uid:u.id,
+          email:u.email
+        });
+        this.users = this.users.filter(x=>x.id!==u.id);
+        this.toast('🗑 Usunięto użytkownika i jego rezerwacje (' + (data.deletedReservations||0) + ')');
+      }catch(e){
+        console.error('removeUser() error:', e);
+        this.toast('❌ Nie udało się usunąć użytkownika: ' + e.message);
+      }finally{
+        this.setUserBusy(u, '');
+      }
     },
 
     // ─ INVITE (tworzy konto Firebase Auth + profil Firestore + wysyla reset hasła) ─
@@ -1326,30 +1566,18 @@ function app(){
       if(!this.invEmail.trim()||!this.invFirstName.trim()){this.toast('❌ Wypełnij imię i e-mail');return;}
       this.invLoading=true;
       try{
-        const tempPass='Temp'+Math.random().toString(36).slice(2,10)+'!';
-        const cred = await fbAuthSec.createUserWithEmailAndPassword(this.invEmail.trim(), tempPass);
-        const uid  = cred.user.uid;
-        const firstName = this.invFirstName.trim();
-        const lastName  = this.invLastName.trim();
-        const initials = (firstName[0]||'')+(lastName[0]||'');
-        const profile = {
-          email:    this.invEmail.trim(),
-          name:     firstName,
-          surname:  lastName,
-          initials,
-          role:     this.invRole,
-          horse:    this.invHorse||'',
-          photo:    '',
-          createdAt:new Date().toISOString()
-        };
-        await fbDb.collection('users').doc(uid).set(profile);
-        await fbAuthSec.sendPasswordResetEmail(this.invEmail.trim());
-        await fbAuthSec.signOut();
-        this.users.push({id:uid,...profile});
+        const data = await callAdminFunction('admin-invite-user',{
+          email:this.invEmail.trim(),
+          name:this.invFirstName.trim(),
+          surname:this.invLastName.trim(),
+          role:this.invRole,
+          horse:this.invHorse||''
+        });
+        this.users.push(data.user);
         this.invEmail=''; this.invFirstName=''; this.invLastName=''; this.invRole='owner'; this.invHorse='';
         this.toast('✅ Konto utworzone! Użytkownik dostanie e-mail z linkiem do ustawienia hasła.');
       }catch(e){
-        this.toast('❌ Błąd: '+(e.code==='auth/email-already-in-use'?'Ten e-mail jest już zarejestrowany':e.message));
+        this.toast('❌ Błąd: '+e.message);
       }
       this.invLoading=false;
     },
@@ -1465,6 +1693,30 @@ function app(){
         .filter(r=>r.status==='rejected')
         .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
     },
+    // ─ ORPHAN CLEANUP ─
+    async findOrphans(){
+      const knownEmails = new Set(this.users.map(u => u.email));
+      const snap = await fbDb.collection('reservations').get();
+      const orphans = snap.docs.filter(d => {
+        const email = d.data().userEmail;
+        return email && !knownEmails.has(email);
+      });
+      this._orphanIds = orphans.map(d => d.id);
+      this.orphanCount = orphans.length;
+      this.toast(orphans.length > 0
+        ? `⚠️ Znaleziono ${orphans.length} osieroconych rezerwacji`
+        : '✅ Brak osieroconych rezerwacji');
+    },
+    async deleteOrphans(){
+      if(this._orphanIds.length === 0) return;
+      const batch = fbDb.batch();
+      this._orphanIds.forEach(id => batch.delete(fbDb.collection('reservations').doc(id)));
+      await batch.commit();
+      this.toast(`🗑 Usunięto ${this._orphanIds.length} osieroconych rezerwacji`);
+      this._orphanIds = [];
+      this.orphanCount = 0;
+    },
+
     async clearCancelledAdmin(){
       const batch=fbDb.batch();
       this.reservations.filter(r=>r.status==='rejected').forEach(r=>{
@@ -1476,6 +1728,8 @@ function app(){
     lName(id){return this.locs.find(l=>l.id===id)?.name||id},
     tLabel(t){return{pensjonat:'Pensjonat',lekcja:'Lekcja',blokada:'Blokada'}[t]||t},
     roleLabel(r){return{admin:'Administrator',owner:'Właściciel konia',student:'Uczeń'}[r]||r},
+    todayKey(){return new Date().toISOString().split('T')[0]},
+    isPastDate(date){return !!date && date < this.todayKey()},
     fmtTime(startHour,addMinutes){
       const total=startHour*60+(addMinutes||0);
       return Math.floor(total/60)+':'+(total%60).toString().padStart(2,'0');
@@ -1484,12 +1738,20 @@ function app(){
     openDetail(b){this.detailB=b;this.showDetail=true},
 
     clickSlot(h,loc){
+      if(this.isPastDate(this.dateKey())){
+        this.toast('❌ Nie można dodać rezerwacji na wcześniejszy dzień niż dzisiaj');
+        return;
+      }
       if(this.booksAt(h,loc).length>=2)return;
       this.editId=null;
       this.form={type:this.currentUser.role==='student'?'lekcja':'pensjonat',startTime:h,duration:60,location:loc,note:'',horse:''};
       this.showModal=true;
     },
     openModal(){
+      if(this.isPastDate(this.dateKey())){
+        this.toast('❌ Nie można dodać rezerwacji na wcześniejszy dzień niż dzisiaj');
+        return;
+      }
       this.editId=null;
       this.form={type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:''};
       this.showModal=true;
@@ -1501,6 +1763,10 @@ function app(){
       const startTime=this.form.startTime;
       const duration=parseInt(this.form.duration)||60;
       const date=this.dateKey();
+      if(this.isPastDate(date)){
+        this.toast('❌ Nie można dodać rezerwacji na wcześniejszy dzień niż dzisiaj');
+        return;
+      }
       if(horse && this.isHorseBusy(horse,date,startTime,duration,this.editId||null)){
         this.toast('❌ Ten koń ma już rezerwację w tym czasie!');
         return;
@@ -1603,19 +1869,26 @@ function app(){
     },
     unreadCount(){return this.notifications.filter(n=>!n.read).length;},
     async markNotifsRead(){
+      const unread = this.notifications.filter(n=>!n.read);
+      if(!unread.length) return;
+      // aktualizuj lokalny stan od razu (nie czekaj na snapshot)
+      unread.forEach(n=>{ n.read=true; });
       const batch=fbDb.batch();
-      this.notifications.filter(n=>!n.read).forEach(n=>{
+      unread.forEach(n=>{
         batch.update(fbDb.collection('notifications').doc(n.id),{read:true});
       });
       await batch.commit();
     },
     async clearReadNotifs(){
+      // usuń wszystkie z lokalnej listy (wszystkie są już przeczytane po markNotifsRead)
+      const toDelete = [...this.notifications];
+      this.notifications = [];
       const batch=fbDb.batch();
-      this.notifications.filter(n=>n.read).forEach(n=>{
+      toDelete.forEach(n=>{
         batch.delete(fbDb.collection('notifications').doc(n.id));
       });
       await batch.commit();
-      this.toast('🗑 Wyczyszczono przeczytane');
+      this.toast('🗑 Wyczyszczono powiadomienia');
     },
     fmtNotifAge(iso){
       const diff=Date.now()-new Date(iso).getTime();
@@ -1640,7 +1913,11 @@ function app(){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'})
+      .then(reg=>reg.update().catch(()=>{}))
+      .catch(()=>{});
+  });
 }
 </script>
 </body>

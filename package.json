@@ -1,0 +1,12 @@
+{
+  "name": "konik-dzieciom",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Netlify functions for Konik Dzieciom",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0"
+  }
+}
