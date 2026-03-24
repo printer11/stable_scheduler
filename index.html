@@ -133,6 +133,11 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 .avatar-btn{position:relative;width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid var(--primary-border);cursor:pointer;background:var(--primary-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--primary);flex-shrink:0;transition:all 0.2s}
 .avatar-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .avatar-btn:active{transform:scale(0.92)}
+.tb-icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s}
+.tb-icon-btn svg{width:17px;height:17px;pointer-events:none}
+.tb-icon-btn:active{transform:scale(0.9);background:var(--bg4)}
+.tb-logout{color:var(--red);border-color:rgba(186,26,26,0.2);background:var(--red-bg)}
+.tb-logout:active{background:var(--red);color:#fff}
 
 /* ── USER DROPDOWN ── */
 .user-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:240px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 12px 40px rgba(0,0,0,0.12);z-index:300;overflow:hidden;animation:dropIn 0.2s cubic-bezier(.34,1.2,.64,1)}
@@ -186,9 +191,9 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 .wddot.lonzownik{background:#7b39a0}
 
 /* ══ LOC FILTER ══ */
-.loc-filter{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;scrollbar-width:none;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
-.loc-filter::-webkit-scrollbar{display:none}
-.lf-pill{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);transition:all 0.18s;letter-spacing:0.04em;text-transform:uppercase;font-family:'Manrope',sans-serif;color:var(--text3)}
+.loc-filter{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.lf-pill{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);transition:all 0.18s;letter-spacing:0.04em;font-family:'Manrope',sans-serif;color:var(--text3)}
+.lf-pill.lc{text-transform:none}
 .lf-pill:active{transform:scale(0.92)}
 .lf-all.on{background:var(--text);color:#fff;border-color:var(--text)}
 .lf-gorka{color:var(--primary)}
@@ -219,6 +224,10 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 .bcard.pensjonat{background:var(--blue-bg);border-left:3px solid var(--blue)}
 .bcard.lekcja{background:var(--green-bg);border-left:3px solid var(--primary)}
 .bcard.blokada{background:var(--bg4);border-left:3px solid var(--text3)}
+.bcard.loc-gorka{background:var(--green-bg);border-left:3px solid var(--primary)}
+.bcard.loc-plac{background:var(--blue-bg);border-left:3px solid var(--blue)}
+.bcard.loc-teren{background:rgba(45,122,66,0.1);border-left:3px solid #2d7a42}
+.bcard.loc-lonzownik{background:rgba(123,57,160,0.1);border-left:3px solid #7b39a0}
 .bcard.pending{opacity:0.75}
 .bcard-row{display:flex;align-items:center;justify-content:space-between;gap:3px}
 .bcard-type{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3)}
@@ -439,38 +448,21 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
       <img src="L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="height:30px;width:auto">
       <span x-show="currentUser.role==='admin'" style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.1em;background:var(--primary-bg);border:1px solid var(--primary-border);border-radius:20px;padding:2px 8px;flex-shrink:0">Admin</span>
     </div>
-    <div class="tb-right" style="position:relative">
-      <div class="avatar-btn" @click="showUserMenu=!showUserMenu">
+    <div class="tb-right">
+      <!-- Avatar → profil -->
+      <div class="avatar-btn" @click="view='profile';profileTab='notif';markNotifsRead();editName=currentUser.name||'';editSurname=currentUser.surname||''" title="Mój profil">
         <img x-show="currentUser.photo" :src="currentUser.photo" alt="">
         <span x-show="!currentUser.photo" x-text="userInitials(currentUser)"></span>
       </div>
-      <div class="user-dropdown" x-show="showUserMenu" @click.outside="showUserMenu=false" x-cloak>
-        <div class="ud-header">
-          <div class="ud-avatar">
-            <img x-show="currentUser.photo" :src="currentUser.photo" alt="">
-            <span x-show="!currentUser.photo" x-text="currentUser.initials||'?'"></span>
-          </div>
-          <div>
-            <div class="ud-name" x-text="fullName(currentUser)||currentUser.email"></div>
-            <div class="ud-role" x-text="roleLabel(currentUser.role)"></div>
-            <div class="ud-horse" x-show="currentUser.horse" x-text="'🐴 '+currentUser.horse"></div>
-          </div>
-        </div>
-        <label class="ud-item photo-upload-label">
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-          Zmień zdjęcie
-          <input type="file" accept="image/*" @change="setProfilePhoto($event)">
-        </label>
-        <div class="ud-item" x-show="currentUser.role==='admin'" @click="showUserMenu=false;view='admin'">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-linecap="round"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-linecap="round"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-linecap="round"/></svg>
-          Panel admina
-        </div>
-        <div class="ud-sep"></div>
-        <div class="ud-item danger" @click="logout()">
-          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Wyloguj się
-        </div>
-      </div>
+      <!-- Zmień zdjęcie -->
+      <label class="tb-icon-btn" title="Zmień zdjęcie profilowe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <input type="file" accept="image/*" @change="setProfilePhoto($event)" style="display:none">
+      </label>
+      <!-- Wyloguj -->
+      <button class="tb-icon-btn tb-logout" @click="logout()" title="Wyloguj się">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
     </div>
   </div>
 
@@ -520,14 +512,31 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
     <div class="cal-wrap" x-show="!weekView" id="swipeWrap">
       <div class="time-rows" id="dayGrid">
         <template x-for="h in hours" :key="h">
-          <div class="trow reveal" :style="'grid-template-columns:38px repeat('+(activeLoc ? 1 : locs.length)+',1fr)'">
+          <div class="trow reveal" style="grid-template-columns:38px 1fr">
             <div class="tlbl" x-text="fmtTime(h,0)"></div>
-            <template x-for="loc in (activeLoc ? locs.filter(l=>l.id===activeLoc) : locs)" :key="loc.id">
-              <div class="slot" :class="[isWeekend()?'slot-weekend':'']"
-                   @click="booksAt(h,loc.id).length===0 && clickSlot(h,loc.id)">
-                <div x-show="!activeLoc" class="slot-locname" x-text="loc.name"></div>
+            <!-- WSZYSTKIE: jedna kolumna, kolory per lokalizacja -->
+            <template x-if="!activeLoc">
+              <div class="slot" :class="[isWeekend()?'slot-weekend':'']" @click="booksAllAt(h).length===0 && clickSlot(h,'gorka')">
                 <div class="slot-cards">
-                  <template x-for="b in booksAt(h,loc.id)" :key="b.id">
+                  <template x-for="b in booksAllAt(h)" :key="b.id">
+                    <div class="bcard" :class="'loc-'+b.location+(b.status==='pending'?' pending':'')" @click.stop="openDetail(b)">
+                      <div class="bcard-row">
+                        <span class="bcard-type" x-text="lName(b.location)"></span>
+                        <div class="status-dot" :class="b.status"></div>
+                      </div>
+                      <div class="bcard-main" x-text="b.horse ? '🐴 '+b.horse : (b.note||'—')"></div>
+                      <div class="bcard-sub" x-text="fmtTime(b.startTime,0)+' – '+fmtTime(b.startTime,b.duration)"></div>
+                    </div>
+                  </template>
+                  <div x-show="booksAllAt(h).length<4" class="slot-add" @click.stop="clickSlot(h,'gorka')">+</div>
+                </div>
+              </div>
+            </template>
+            <!-- KONKRETNA LOKALIZACJA: oryginalne zachowanie -->
+            <template x-if="activeLoc">
+              <div class="slot" :class="[isWeekend()?'slot-weekend':'']" @click="booksAt(h,activeLoc).length===0 && clickSlot(h,activeLoc)">
+                <div class="slot-cards">
+                  <template x-for="b in booksAt(h,activeLoc)" :key="b.id">
                     <div class="bcard" :class="b.type+(b.status==='pending'?' pending':'')" @click.stop="openDetail(b)">
                       <div class="bcard-row">
                         <span class="bcard-type" x-text="tLabel(b.type)"></span>
@@ -537,7 +546,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
                       <div class="bcard-sub" x-text="fmtTime(b.startTime,0)+' – '+fmtTime(b.startTime,b.duration)"></div>
                     </div>
                   </template>
-                  <div x-show="booksAt(h,loc.id).length===1" class="slot-add" @click.stop="clickSlot(h,loc.id)">+</div>
+                  <div x-show="booksAt(h,activeLoc).length===1" class="slot-add" @click.stop="clickSlot(h,activeLoc)">+</div>
                 </div>
               </div>
             </template>
@@ -612,7 +621,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
       <template x-if="pendingList().length===0">
         <div style="color:var(--text3);font-size:13px;margin-bottom:20px;padding:16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center;box-shadow:var(--shadow)">Brak oczekujących rezerwacji 🎉</div>
       </template>
-      <template x-for="b in pendingList()" :key="b.id">
+      <template x-for="b in pendingList().slice().sort((a,b)=>b.createdAt?.localeCompare(a.createdAt))" :key="b.id">
         <div class="pending-card">
           <div class="pc-top">
             <div>
@@ -625,11 +634,35 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           </div>
           <div class="pc-actions">
             <button class="apill ok" @click="confirm(b)">✓ Zatwierdź</button>
-            <button class="apill mv" @click="openEditPlace(b)">✎ Zmień miejsce</button>
+            <button class="apill mv" @click="openEditPlace(b)">✎ Edytuj</button>
             <button class="apill no" @click="reject(b)">✕ Odrzuć</button>
           </div>
         </div>
       </template>
+
+      <!-- ANULOWANE / ODRZUCONE -->
+      <div x-show="cancelledAdminList().length>0" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em">
+            Anulowane / Odrzucone
+            <span style="font-weight:600;color:var(--red)" x-text="'('+cancelledAdminList().length+')'"></span>
+          </div>
+          <button class="btn-cancel" style="padding:5px 12px;font-size:11px" @click="clearCancelledAdmin()">🗑 Wyczyść</button>
+        </div>
+        <template x-for="b in cancelledAdminList()" :key="b.id">
+          <div style="background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--red);border-radius:var(--r2);padding:11px 14px;margin-bottom:7px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;color:var(--text)" x-text="b.userName||b.userEmail"></div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px" x-text="b.date+' · '+fmtTime(b.startTime,0)+' – '+fmtTime(b.startTime,b.duration)+' · '+lName(b.location)"></div>
+                <div x-show="b.horse" style="font-size:11px;color:var(--primary);margin-top:2px" x-text="'🐴 '+b.horse"></div>
+                <div x-show="b.rejectMessage" style="font-size:11px;color:var(--red);margin-top:4px;font-style:italic;white-space:pre-wrap;word-break:break-word" x-text="b.rejectMessage"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);white-space:nowrap;flex-shrink:0" x-text="fmtNotifAge(b.createdAt)"></div>
+            </div>
+          </div>
+        </template>
+      </div>
 
       <!-- USERS TOGGLE -->
       <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 0 10px;border-top:1px solid var(--border);margin-top:6px" @click="showUsersPanel=!showUsersPanel">
@@ -724,6 +757,22 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         </div>
       </div>
 
+      <!-- EDYCJA IMIENIA/NAZWISKA -->
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">Edytuj dane</div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="frow" style="margin-bottom:0">
+            <div class="flbl">Imię</div>
+            <input class="finp" x-model="editName" placeholder="Imię" style="font-size:13px;padding:10px 12px">
+          </div>
+          <div class="frow" style="margin-bottom:0">
+            <div class="flbl">Nazwisko</div>
+            <input class="finp" x-model="editSurname" placeholder="Nazwisko" style="font-size:13px;padding:10px 12px">
+          </div>
+        </div>
+        <button class="btn-green" style="width:100%" @click="saveProfileName()">Zapisz zmiany</button>
+      </div>
+
       <!-- BANNER ZEN -->
       <div style="background:linear-gradient(135deg,#e6f4ee,#f0faf5);border:1px solid var(--primary-border);border-radius:var(--r2);padding:16px 18px;margin-bottom:20px;position:relative;overflow:hidden">
         <div style="position:absolute;right:-10px;top:-10px;width:80px;height:80px;background:var(--primary-bg);border-radius:50%;opacity:0.5"></div>
@@ -761,7 +810,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           <div class="notif-card" :class="[n.read?'':'unread', n.type+'-n']">
             <div class="notif-title">
               <div class="notif-unread-dot" x-show="!n.read"></div>
-              <span x-text="{accepted:'✅ Rezerwacja zatwierdzona',rejected:'❌ Rezerwacja odrzucona',moved:'📍 Zmieniono miejsce'}[n.type]||n.type"></span>
+              <span x-text="{accepted:'✅ Rezerwacja zatwierdzona',rejected:'❌ Rezerwacja odrzucona',moved:'📍 Dokonano edycji rezerwacji'}[n.type]||n.type"></span>
             </div>
             <div class="notif-detail" x-text="n.bookingDate+' · '+n.bookingTime+' · '+n.bookingLoc+(n.horse?' · 🐴 '+n.horse:'')"></div>
             <div class="notif-msg" x-show="n.message" x-text="'Powód: '+n.message"></div>
@@ -773,6 +822,13 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 
       <!-- MOJE REZERWACJE -->
       <div x-show="profileTab==='reservations'">
+        <!-- Filtry -->
+        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+          <button class="lf-pill lc" :class="{on:resFilter==='all'}" @click="resFilter='all'">Wszystkie</button>
+          <button class="lf-pill lf-gorka lc" :class="{on:resFilter==='confirmed'}" @click="resFilter='confirmed'">Zatwierdzone</button>
+          <button class="lf-pill lc" :class="{on:resFilter==='pending'}" style="color:var(--amber)" :style="resFilter==='pending'?'background:var(--amber-bg);border-color:var(--amber)':''" @click="resFilter='pending'">Oczekujące</button>
+          <button class="lf-pill lc" :class="{on:resFilter==='rejected'}" style="color:var(--red)" :style="resFilter==='rejected'?'background:var(--red-bg);border-color:var(--red)':''" @click="resFilter='rejected'">Odrzucone</button>
+        </div>
         <template x-if="myReservations().length===0">
           <div style="color:var(--text3);font-size:13px;padding:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center">Nie masz jeszcze żadnych rezerwacji</div>
         </template>
@@ -784,7 +840,11 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
             </div>
             <div style="font-size:12px;color:var(--text2)" x-text="b.date+' · '+fmtTime(b.startTime,0)+' – '+fmtTime(b.startTime,b.duration)"></div>
             <div style="font-size:12px;color:var(--primary);font-weight:600;margin-top:3px" x-text="lName(b.location)+(b.horse?' · 🐴 '+b.horse:'')"></div>
-            <div x-show="b.rejectMessage" style="font-size:11px;color:var(--red);margin-top:6px;padding:6px 10px;background:var(--red-bg);border-radius:8px" x-text="'Powód odrzucenia: '+b.rejectMessage"></div>
+            <div x-show="b.rejectMessage" style="font-size:11px;color:var(--red);margin-top:6px;padding:6px 10px;background:var(--red-bg);border-radius:8px" x-text="'Powód: '+b.rejectMessage"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+              <div x-show="b.createdAt" style="font-size:10px;color:var(--text3)" x-text="'Wysłano: '+fmtNotifAge(b.createdAt)"></div>
+              <button x-show="b.status!=='rejected'" style="padding:5px 12px;background:var(--red-bg);border:1px solid rgba(186,26,26,0.2);border-radius:20px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif" @click.stop="openCancelModal(b)">❌ Anuluj</button>
+            </div>
           </div>
         </template>
       </div><!-- /profileTab=reservations -->
@@ -814,7 +874,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
       <div class="bn-badge" x-show="pendingList().length>0" x-text="pendingList().length"></div>
       <span>Admin</span>
     </button>
-    <button class="bnitem" :class="{active:view==='profile'}" @click="view='profile';profileTab='notif';markNotifsRead()" style="position:relative">
+    <button class="bnitem" :class="{active:view==='profile'}" @click="view='profile';profileTab='notif';markNotifsRead();editName=currentUser.name||'';editSurname=currentUser.surname||''" style="position:relative">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <div class="bn-badge" x-show="unreadCount()>0" x-text="unreadCount()"></div>
       <span>Profil</span>
@@ -882,6 +942,25 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
     </div>
   </div>
 
+  <!-- MODAL: ANULUJ REZERWACJĘ (user) -->
+  <div class="overlay" x-show="showCancelModal" @click.self="showCancelModal=false" x-cloak>
+    <div class="modal">
+      <div class="modal-pill"></div>
+      <div class="modal-title epi">Anuluj rezerwację</div>
+      <div style="background:var(--red-bg);border:1px solid rgba(186,26,26,0.15);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px">
+        <span x-text="cancelTarget ? tLabel(cancelTarget.type)+' · '+cancelTarget.date+' · '+fmtTime(cancelTarget.startTime,0)+' – '+fmtTime(cancelTarget.startTime,cancelTarget.duration) : ''"></span>
+      </div>
+      <div class="frow">
+        <div class="flbl">Powód anulowania <span style="color:var(--text3);font-weight:400">(opcjonalnie)</span></div>
+        <textarea class="finp ftxt" x-model="cancelMsg" placeholder="np. Zachorowałem/am, wyjazd, inna przyczyna..."></textarea>
+      </div>
+      <div class="mact">
+        <button class="btn-cancel" @click="showCancelModal=false">Wróć</button>
+        <button class="apill no" style="flex:2;padding:13px;font-size:14px;border-radius:var(--r)" @click="doCancel()">❌ Potwierdź anulowanie</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: ZATWIERDŹ Z KONIEM -->
   <div class="overlay" x-show="showConfirmModal" @click.self="showConfirmModal=false" x-cloak>
     <div class="modal">
@@ -894,8 +973,8 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           <option value="">— bez konia —</option>
           <template x-for="h in horses" :key="h">
             <option :value="h"
-              :disabled="isHorseBusy(h, confirmTarget?.date, confirmTarget?.startTime, confirmTarget?.duration, confirmTarget?.id)"
-              x-text="isHorseBusy(h, confirmTarget?.date, confirmTarget?.startTime, confirmTarget?.duration, confirmTarget?.id) ? h+' (zajęty)' : h">
+              :disabled="isHorseBusy(h, confirmTarget?.date, confirmTarget?.startTime, confirmTarget?.duration, confirmTarget?.id, true)"
+              x-text="isHorseBusy(h, confirmTarget?.date, confirmTarget?.startTime, confirmTarget?.duration, confirmTarget?.id, true) ? h+' (zajęty)' : h">
             </option>
           </template>
         </select>
@@ -928,7 +1007,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
   <div class="overlay" x-show="showPlaceModal" @click.self="showPlaceModal=false" x-cloak>
     <div class="modal">
       <div class="modal-pill"></div>
-      <div class="modal-title epi">Zmień miejsce</div>
+      <div class="modal-title epi">Edytuj rezerwację</div>
       <div style="font-size:13px;color:var(--text3);margin-bottom:14px" x-text="editPlaceB?'Rezerwacja: '+(editPlaceB.userName||editPlaceB.userEmail)+' · '+fmtTime(editPlaceB.startTime,0):''"></div>
       <div class="frow">
         <div class="flbl">Nowe miejsce</div>
@@ -936,9 +1015,21 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           <template x-for="l in locs" :key="l.id"><option :value="l.id" x-text="l.name"></option></template>
         </select>
       </div>
+      <div class="frow">
+        <div class="flbl">Przypisz konia</div>
+        <select class="fsel" x-model="editPlaceHorse">
+          <option value="">— bez konia —</option>
+          <template x-for="h in horses" :key="h">
+            <option :value="h"
+              :disabled="isHorseBusy(h, editPlaceB?.date, editPlaceB?.startTime, editPlaceB?.duration, editPlaceB?.id, true)"
+              x-text="isHorseBusy(h, editPlaceB?.date, editPlaceB?.startTime, editPlaceB?.duration, editPlaceB?.id, true) ? h+' (zajęty)' : h">
+            </option>
+          </template>
+        </select>
+      </div>
       <div class="mact">
         <button class="btn-cancel" @click="showPlaceModal=false">Anuluj</button>
-        <button class="btn-save" @click="savePlace()">Zatwierdź z nowym miejscem</button>
+        <button class="btn-save" @click="savePlace()">Zatwierdź</button>
       </div>
     </div>
   </div>
@@ -975,8 +1066,8 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         <div x-show="currentUser.role==='admin' && detailB?.status==='pending'">
           <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Akcje admina</div>
           <div style="display:flex;gap:8px">
-            <button class="apill ok" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="confirm(detailB);showDetail=false">✓ Zatwierdź</button>
-            <button class="apill mv" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="showDetail=false;openEditPlace(detailB)">✎ Zmień miejsce</button>
+            <button class="apill ok" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="showDetail=false;confirm(detailB)">✓ Zatwierdź</button>
+            <button class="apill mv" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="showDetail=false;openEditPlace(detailB)">✎ Edytuj</button>
             <button class="apill no" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="reject(detailB);showDetail=false">✕ Odrzuć</button>
           </div>
         </div>
@@ -1109,14 +1200,16 @@ function app(){
     showDetail:false, detailB:null,
     showModal:false, editId:null,
     form:{type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:''},
-    showPlaceModal:false, editPlaceB:null, editPlaceLoc:'gorka',
+    showPlaceModal:false, editPlaceB:null, editPlaceLoc:'gorka', editPlaceHorse:'',
     showConfirmModal:false, confirmTarget:null, confirmHorse:'',
     showRejectModal:false, rejectTarget:null, rejectMsg:'',
+    showCancelModal:false, cancelTarget:null, cancelMsg:'',
     showUserMenu:false,
     showUsersPanel:false,
     showHorsesPanel:false,
     invEmail:'', invFirstName:'', invLastName:'', invRole:'owner', invHorse:'', invLoading:false,
-    profileTab:'notif',
+    profileTab:'notif', resFilter:'all',
+    editName:'', editSurname:'',
     toastOn:false, toastMsg:'',
     _unsubRes:null, _unsubNotif:null,
 
@@ -1155,6 +1248,7 @@ function app(){
         this._listenNotifications();
         this.$watch('view',()=>setTimeout(()=>this.revealCards(),100));
         setTimeout(()=>this.revealCards(),300);
+        setTimeout(()=>this.scrollWeekStrip(),400);
         this.$nextTick(()=>this.setupSwipe());
       } catch(err){
         console.error('_start() error:', err);
@@ -1260,6 +1354,19 @@ function app(){
       this.invLoading=false;
     },
 
+    // ─ PROFILE NAME ─
+    async saveProfileName(){
+      const name=this.editName.trim();
+      const surname=this.editSurname.trim();
+      if(!name){this.toast('❌ Imię nie może być puste');return;}
+      const initials=(name[0]||'')+(surname[0]||'');
+      await fbDb.collection('users').doc(this.currentUser.uid).update({name,surname,initials});
+      this.currentUser.name=name;
+      this.currentUser.surname=surname;
+      this.currentUser.initials=initials;
+      this.toast('✅ Dane zaktualizowane');
+    },
+
     // ─ PHOTO ─
     async setProfilePhoto(e){
       const file=e.target.files[0]; if(!file)return;
@@ -1292,10 +1399,10 @@ function app(){
     dateBig(){return this.date.toLocaleDateString('pl-PL',{day:'numeric',month:'long'})},
     dateFull(){return this.date.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'})},
     isWeekend(d){const day=(d||this.date).getDay();return day===0||day===6},
-    prev(){const d=new Date(this.date);d.setDate(d.getDate()-1);this.date=d;this.$nextTick(()=>this.revealCards())},
-    next(){const d=new Date(this.date);d.setDate(d.getDate()+1);this.date=d;this.$nextTick(()=>this.revealCards())},
-    goToday(){this.date=new Date();this.$nextTick(()=>this.revealCards())},
-    jumpTo(d){this.date=new Date(d);this.weekView=false;this.$nextTick(()=>this.revealCards())},
+    prev(){const d=new Date(this.date);d.setDate(d.getDate()-1);this.date=d;this.$nextTick(()=>this.revealCards());this.scrollWeekStrip();},
+    next(){const d=new Date(this.date);d.setDate(d.getDate()+1);this.date=d;this.$nextTick(()=>this.revealCards());this.scrollWeekStrip();},
+    goToday(){this.date=new Date();this.$nextTick(()=>this.revealCards());this.scrollWeekStrip();},
+    jumpTo(d){this.date=new Date(d);this.weekView=false;this.$nextTick(()=>this.revealCards());this.scrollWeekStrip();},
     strip7(){return this._stripDays(7,0)},
     strip14(){return this._stripDays(14,-7)},
     _stripDays(count,startOffset){
@@ -1324,17 +1431,48 @@ function app(){
     booksAt(h,loc){
       return this.reservations.filter(r=>r.date===this.dateKey()&&r.location===loc&&r.startTime<=h&&(r.startTime+r.duration/60)>h&&r.status!=='rejected');
     },
+    booksAllAt(h){
+      return this.reservations.filter(r=>r.date===this.dateKey()&&r.startTime<=h&&(r.startTime+r.duration/60)>h&&r.status!=='rejected');
+    },
+    scrollWeekStrip(){
+      this.$nextTick(()=>{
+        const strip=document.getElementById('weekStrip');
+        if(!strip)return;
+        const active=strip.querySelector('.wd.active');
+        if(active){
+          const offset=active.offsetLeft-strip.offsetWidth/2+active.offsetWidth/2;
+          strip.scrollTo({left:Math.max(0,offset),behavior:'smooth'});
+        }
+      });
+    },
     booksAtDate(h,iso){
       return this.reservations.filter(r=>r.date===iso&&r.startTime<=h&&(r.startTime+r.duration/60)>h&&r.status!=='rejected');
     },
-    isHorseBusy(horse,date,startTime,duration,excludeId){
+    // onlyConfirmed=true przy zatwierdzaniu (nie blokuj przez inne pending)
+    isHorseBusy(horse,date,startTime,duration,excludeId,onlyConfirmed){
       if(!horse) return false;
-      return this.reservations.some(r=>
-        r.id!==excludeId && r.horse===horse && r.date===date && r.status!=='rejected' &&
-        r.startTime<(startTime+duration/60) && (r.startTime+r.duration/60)>startTime
-      );
+      return this.reservations.some(r=>{
+        if(r.id===excludeId) return false;
+        if(r.horse!==horse || r.date!==date) return false;
+        if(r.status==='rejected') return false;
+        if(onlyConfirmed && r.status!=='confirmed') return false;
+        return r.startTime<(startTime+duration/60) && (r.startTime+r.duration/60)>startTime;
+      });
     },
     pendingList(){return this.reservations.filter(r=>r.status==='pending')},
+    cancelledAdminList(){
+      return this.reservations
+        .filter(r=>r.status==='rejected')
+        .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+    },
+    async clearCancelledAdmin(){
+      const batch=fbDb.batch();
+      this.reservations.filter(r=>r.status==='rejected').forEach(r=>{
+        batch.delete(fbDb.collection('reservations').doc(r.id));
+      });
+      await batch.commit();
+      this.toast('🗑 Wyczyszczono anulowane/odrzucone');
+    },
     lName(id){return this.locs.find(l=>l.id===id)?.name||id},
     tLabel(t){return{pensjonat:'Pensjonat',lekcja:'Lekcja',blokada:'Blokada'}[t]||t},
     roleLabel(r){return{admin:'Administrator',owner:'Właściciel konia',student:'Uczeń'}[r]||r},
@@ -1390,7 +1528,7 @@ function app(){
     async doConfirm(){
       const b=this.confirmTarget;
       const horse=this.confirmHorse||b.horse||'';
-      if(horse && this.isHorseBusy(horse,b.date,b.startTime,b.duration,b.id)){
+      if(horse && this.isHorseBusy(horse,b.date,b.startTime,b.duration,b.id,true)){
         this.toast('❌ Ten koń ma już zatwierdzoną rezerwację w tym czasie!');
         return;
       }
@@ -1419,14 +1557,31 @@ function app(){
       this.showRejectModal=false; this.rejectTarget=null; this.rejectMsg='';
       this.toast('❌ Odrzucono');
     },
-    openEditPlace(b){this.editPlaceB=b;this.editPlaceLoc=b.location;this.showPlaceModal=true;},
+    openCancelModal(b){ this.cancelTarget=b; this.cancelMsg=''; this.showCancelModal=true; },
+    async doCancel(){
+      const b=this.cancelTarget;
+      const upd={...b, status:'rejected', rejectMessage:this.cancelMsg?'❌ Anulowano przez użytkownika: '+this.cancelMsg:'❌ Anulowano przez użytkownika'};
+      await this.putDB(upd);
+      await this.pushNotif('__admin__',{type:'cancelled',bookingDate:b.date,
+        bookingTime:this.fmtTime(b.startTime,0)+' – '+this.fmtTime(b.startTime,b.duration),
+        bookingLoc:this.lName(b.location),horse:b.horse||'',
+        message:(this.fullName(this.currentUser)||this.currentUser.email)+' anulował(a) rezerwację'+(this.cancelMsg?' — '+this.cancelMsg:'')});
+      this.showCancelModal=false; this.cancelTarget=null; this.cancelMsg='';
+      this.toast('❌ Rezerwacja anulowana');
+    },
+    openEditPlace(b){this.editPlaceB=b;this.editPlaceLoc=b.location;this.editPlaceHorse=b.horse||'';this.showPlaceModal=true;},
     async savePlace(){
       const oldLoc=this.lName(this.editPlaceB.location);
-      const upd={...this.editPlaceB, location:this.editPlaceLoc, status:'confirmed'};
+      const horse=this.editPlaceHorse||this.editPlaceB.horse||'';
+      if(horse && this.isHorseBusy(horse,this.editPlaceB.date,this.editPlaceB.startTime,this.editPlaceB.duration,this.editPlaceB.id,true)){
+        this.toast('❌ Ten koń ma już zatwierdzoną rezerwację w tym czasie!');
+        return;
+      }
+      const upd={...this.editPlaceB, location:this.editPlaceLoc, horse, status:'confirmed'};
       await this.putDB(upd);
       await this.pushNotif(upd.userEmail,{type:'moved',bookingDate:upd.date,
         bookingTime:this.fmtTime(upd.startTime,0)+' – '+this.fmtTime(upd.startTime,upd.duration),
-        bookingLoc:this.lName(upd.location),horse:upd.horse||'',
+        bookingLoc:this.lName(upd.location),horse:horse,
         message:'Poprzednie miejsce: '+oldLoc});
       this.showPlaceModal=false;
       this.toast('✅ Miejsce zmienione i zatwierdzone');
@@ -1442,7 +1597,9 @@ function app(){
     myReservations(){
       return this.reservations
         .filter(r=>r.userEmail===this.currentUser.email)
-        .sort((a,b)=>b.date.localeCompare(a.date)||b.startTime-a.startTime);
+        .filter(r=>this.resFilter==='all' || r.status===this.resFilter)
+        .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))
+        .slice(0,3);
     },
     unreadCount(){return this.notifications.filter(n=>!n.read).length;},
     async markNotifsRead(){
