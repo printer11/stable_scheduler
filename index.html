@@ -370,7 +370,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 
 <!-- ═══════ SPLASH ═══════ -->
 <div id="splash">
-  <img src="/L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="width:200px;max-width:70vw;margin-bottom:10px;animation:floatIn 0.8s cubic-bezier(.34,1.4,.64,1) both">
+  <img src="L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="width:200px;max-width:70vw;margin-bottom:10px;animation:floatIn 0.8s cubic-bezier(.34,1.4,.64,1) both">
   <div class="splash-sub">Zarządzanie stajnią</div>
   <div class="splash-bar"><div class="splash-bar-fill"></div></div>
   <div class="splash-tip" id="splashTip"></div>
@@ -384,7 +384,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 <div id="login">
   <div class="login-scroll">
     <div class="login-hero">
-      <img src="/L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="width:180px;max-width:65vw;margin-bottom:8px;border-radius:12px">
+      <img src="L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="width:180px;max-width:65vw;margin-bottom:8px;border-radius:12px">
       <div class="login-sub">Zarządzanie stajnią</div>
     </div>
 
@@ -435,11 +435,9 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 
   <!-- TOP BAR -->
   <div class="topbar">
-    <div class="tb-logo">
-      <div class="tb-logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
-      </div>
-      <span class="tb-name epi" x-text="currentUser.role==='admin'?'STAJNIA — ADMIN':'KONIK DZIECIOM'"></span>
+    <div class="tb-logo" style="gap:10px">
+      <img src="L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="height:30px;width:auto">
+      <span x-show="currentUser.role==='admin'" style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.1em;background:var(--primary-bg);border:1px solid var(--primary-border);border-radius:20px;padding:2px 8px;flex-shrink:0">Admin</span>
     </div>
     <div class="tb-right" style="position:relative">
       <div class="avatar-btn" @click="showUserMenu=!showUserMenu">
@@ -644,20 +642,22 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:14px;margin-bottom:12px">
           <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Zaproś nowego użytkownika</div>
           <div class="fgrid" style="margin-bottom:8px">
-            <input class="finp" x-model="invName" placeholder="Imię i nazwisko" style="font-size:13px;padding:10px 12px">
-            <input class="finp" x-model="invEmail" type="email" placeholder="email@example.pl" style="font-size:13px;padding:10px 12px">
+            <input class="finp" x-model="invFirstName" placeholder="Imię *" style="font-size:13px;padding:10px 12px">
+            <input class="finp" x-model="invLastName" placeholder="Nazwisko (opcjonalnie)" style="font-size:13px;padding:10px 12px">
           </div>
-          <div class="fgrid" style="margin-bottom:10px">
+          <div class="fgrid" style="margin-bottom:8px">
+            <input class="finp" x-model="invEmail" type="email" placeholder="Email *" style="font-size:13px;padding:10px 12px">
             <select class="fsel" x-model="invRole" style="font-size:13px;padding:10px 12px">
               <option value="owner">Właściciel konia</option>
               <option value="student">Uczeń</option>
               <option value="admin">Admin</option>
             </select>
-            <select class="fsel" x-model="invHorse" x-show="invRole==='owner'" style="font-size:13px;padding:10px 12px">
+          </div>
+          <div style="margin-bottom:10px" x-show="invRole==='owner'">
+            <select class="fsel" x-model="invHorse" style="font-size:13px;padding:10px 12px;width:100%">
               <option value="">Brak konia</option>
               <template x-for="h in horses" :key="h"><option :value="h" x-text="h"></option></template>
             </select>
-            <div x-show="invRole!=='owner'"></div>
           </div>
           <button class="btn-green" style="width:100%" @click="invite()" :disabled="invLoading" x-text="invLoading?'Wysyłanie...':'Utwórz konto i wyślij zaproszenie'"></button>
         </div>
@@ -787,16 +787,18 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
             <div x-show="b.rejectMessage" style="font-size:11px;color:var(--red);margin-top:6px;padding:6px 10px;background:var(--red-bg);border-radius:8px" x-text="'Powód odrzucenia: '+b.rejectMessage"></div>
           </div>
         </template>
+      </div><!-- /profileTab=reservations -->
+
       <!-- LINKI PRAWNE -->
       <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
         <span style="font-size:11px;color:var(--text3)">Korzystając z aplikacji akceptujesz </span>
-        <a href="/terms.html" target="_blank" style="font-size:11px;color:var(--primary);font-weight:700;text-decoration:none">Regulamin</a>
+        <a href="terms.html" target="_blank" style="font-size:11px;color:var(--primary);font-weight:700;text-decoration:none">Regulamin</a>
         <span style="font-size:11px;color:var(--text3)"> i </span>
-        <a href="/privacy.html" target="_blank" style="font-size:11px;color:var(--primary);font-weight:700;text-decoration:none">Politykę Prywatności</a>
+        <a href="privacy.html" target="_blank" style="font-size:11px;color:var(--primary);font-weight:700;text-decoration:none">Politykę Prywatności</a>
         <div style="margin-top:6px;font-size:10px;color:var(--text3)">Dane przechowywane w Firebase · Warszawa (PL) · Zgodnie z RODO</div>
       </div>
-    </div>
-  </div>
+    </div><!-- /panel-page -->
+  </div><!-- /profile app-body -->
 
   <!-- FAB -->
   <button class="fab" x-show="view==='calendar'" @click="openModal()">+</button>
@@ -1086,31 +1088,53 @@ function app(){
     showUserMenu:false,
     showUsersPanel:false,
     showHorsesPanel:false,
-    invEmail:'', invName:'', invRole:'owner', invHorse:'', invLoading:false,
+    invEmail:'', invFirstName:'', invLastName:'', invRole:'owner', invHorse:'', invLoading:false,
     profileTab:'notif',
     toastOn:false, toastMsg:'',
     _unsubRes:null, _unsubNotif:null,
 
     async init(){
-      // jeśli auth już gotowy
-      if(window._fbProfile){
-        this.currentUser = window._fbProfile;
-        await this._start();
-      }
-      document.addEventListener('fbReady', async e=>{
-        this.currentUser = e.detail;
-        await this._start();
+      // Czekamy na Alpine gotowosć, potem sprawdzamy auth
+      this.$nextTick(()=>{
+        // Jeśli Firebase już odpalił przed Alpine
+        if(window._fbProfile){
+          this.currentUser = window._fbProfile;
+          this._start();
+        }
+        // Jeśli Firebase odpali po Alpine
+        document.addEventListener('fbReady', e=>{
+          if(this.currentUser && this.currentUser.uid) return; // już uruchomiony
+          this.currentUser = e.detail;
+          this._start();
+        });
+        // Fallback: co 200ms sprawdzamy czy profil się pojawił
+        const poll = setInterval(()=>{
+          if(window._fbProfile && !(this.currentUser && this.currentUser.uid)){
+            this.currentUser = window._fbProfile;
+            this._start();
+          }
+          if(this.currentUser && this.currentUser.uid) clearInterval(poll);
+        }, 200);
+        setTimeout(()=>clearInterval(poll), 10000);
       });
     },
 
     async _start(){
-      await this.loadHorses();
-      await this.loadUsers();
-      this._listenReservations();
-      this._listenNotifications();
-      this.$watch('view',()=>setTimeout(()=>this.revealCards(),100));
-      setTimeout(()=>this.revealCards(),300);
-      this.$nextTick(()=>this.setupSwipe());
+      try{
+        await this.loadHorses();
+        await this.loadUsers();
+        this._listenReservations();
+        this._listenNotifications();
+        this.$watch('view',()=>setTimeout(()=>this.revealCards(),100));
+        setTimeout(()=>this.revealCards(),300);
+        this.$nextTick(()=>this.setupSwipe());
+      } catch(err){
+        console.error('_start() error:', err);
+        // mimo błędu — uruchom nasłuch i UI
+        this._listenReservations();
+        this._listenNotifications();
+        this.$nextTick(()=>this.setupSwipe());
+      }
     },
 
     // ─ FIRESTORE LISTENERS (real-time) ─
@@ -1126,10 +1150,11 @@ function app(){
       if(this._unsubNotif) this._unsubNotif();
       this._unsubNotif = fbDb.collection('notifications')
         .where('userEmail','==',this.currentUser.email)
-        .orderBy('createdAt','desc')
         .limit(50)
         .onSnapshot(snap=>{
-          this.notifications = snap.docs.map(d=>({id:d.id,...d.data()}));
+          this.notifications = snap.docs
+            .map(d=>({id:d.id,...d.data()}))
+            .sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
         });
     },
 
@@ -1176,16 +1201,15 @@ function app(){
 
     // ─ INVITE (tworzy konto Firebase Auth + profil Firestore + wysyla reset hasła) ─
     async invite(){
-      if(!this.invEmail.trim()||!this.invName.trim()){this.toast('❌ Wypełnij imię i e-mail');return;}
+      if(!this.invEmail.trim()||!this.invFirstName.trim()){this.toast('❌ Wypełnij imię i e-mail');return;}
       this.invLoading=true;
       try{
         const tempPass='Temp'+Math.random().toString(36).slice(2,10)+'!';
         const cred = await fbAuthSec.createUserWithEmailAndPassword(this.invEmail.trim(), tempPass);
         const uid  = cred.user.uid;
-        const parts = this.invName.trim().split(' ');
-        const firstName = parts[0]||'';
-        const lastName  = parts.slice(1).join(' ');
-        const initials = (firstName[0]||('')+((lastName[0])||'')).toUpperCase();
+        const firstName = this.invFirstName.trim();
+        const lastName  = this.invLastName.trim();
+        const initials = (firstName[0]||'')+(lastName[0]||'');
         const profile = {
           email:    this.invEmail.trim(),
           name:     firstName,
@@ -1200,7 +1224,7 @@ function app(){
         await fbAuthSec.sendPasswordResetEmail(this.invEmail.trim());
         await fbAuthSec.signOut();
         this.users.push({id:uid,...profile});
-        this.invEmail=''; this.invName=''; this.invRole='owner'; this.invHorse='';
+        this.invEmail=''; this.invFirstName=''; this.invLastName=''; this.invRole='owner'; this.invHorse='';
         this.toast('✅ Konto utworzone! Użytkownik dostanie e-mail z linkiem do ustawienia hasła.');
       }catch(e){
         this.toast('❌ Błąd: '+(e.code==='auth/email-already-in-use'?'Ten e-mail jest już zarejestrowany':e.message));
