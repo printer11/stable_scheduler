@@ -1,0 +1,19 @@
+{
+  "name": "Konik Dzieciom – Rezerwacje",
+  "short_name": "Konik Dzieciom",
+  "description": "System rezerwacji stajni Konik Dzieciom",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111210",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "categories": ["productivity", "utilities"],
+  "developer": {
+    "name": "zenautomations.cloud",
+    "url": "https://zenautomations.cloud"
+  }
+}

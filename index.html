@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f8f9f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/manifest.json">
+<title>Konik Dzieciom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+:root{
+  --bg:#f8f9f8;
+  --bg2:#ffffff;
+  --bg3:#f0f1ef;
+  --bg4:#e8e9e6;
+  --bg5:#e2e3e0;
+  --border:rgba(0,0,0,0.07);
+  --border2:#c1c8c2;
+  --text:#1a1c1a;
+  --text2:#414844;
+  --text3:#717972;
+  --primary:#006d4a;
+  --primary2:#2d8a65;
+  --primary-bg:rgba(0,109,74,0.08);
+  --primary-border:rgba(0,109,74,0.22);
+  --green:#006d4a;
+  --green-bg:rgba(0,109,74,0.08);
+  --blue:#0062b1;
+  --blue-bg:rgba(0,98,177,0.08);
+  --amber:#7b5900;
+  --amber-bg:rgba(123,89,0,0.09);
+  --red:#ba1a1a;
+  --red-bg:rgba(186,26,26,0.08);
+  --lime:#c3f400;
+  --lime-text:#3c4d00;
+  --glass:rgba(255,255,255,0.82);
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+  --shadow2:0 4px 24px rgba(0,109,74,0.1);
+  --r:12px;
+  --r2:18px;
+  --r3:24px;
+  --nav-h:68px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{height:100%;overscroll-behavior:none}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+.epi{font-family:'Epilogue',sans-serif;letter-spacing:-0.02em}
+[x-cloak]{display:none!important}
+
+/* ══ SPLASH ══ */
+#splash{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+#splash.out{animation:splashOut 0.5s ease forwards}
+@keyframes splashOut{to{opacity:0;transform:scale(1.03)}}
+.splash-icon{width:80px;height:80px;background:var(--primary);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;animation:floatIn 0.8s cubic-bezier(.34,1.4,.64,1) both}
+.splash-icon svg{width:44px;height:44px;fill:white}
+.splash-title{font-family:'Epilogue',sans-serif;font-size:36px;font-weight:900;letter-spacing:-0.03em;color:var(--primary);animation:floatIn 0.8s 0.1s cubic-bezier(.34,1.4,.64,1) both}
+.splash-sub{font-size:11px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;font-weight:600;margin-top:6px;animation:floatIn 0.8s 0.2s cubic-bezier(.34,1.4,.64,1) both}
+.splash-bar{width:100px;height:3px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-top:36px;animation:floatIn 0.8s 0.35s both}
+.splash-bar-fill{height:100%;background:var(--primary);animation:fillBar 2.2s 0.35s ease both}
+.splash-tip{font-size:13px;color:var(--text2);text-align:center;max-width:280px;line-height:1.6;min-height:48px;margin-top:20px;animation:floatIn 0.8s 0.3s both;font-weight:500}
+.splash-powered{position:fixed;bottom:28px;display:flex;flex-direction:column;align-items:center;gap:4px;animation:floatIn 0.8s 0.45s both}
+.splash-powered-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;font-weight:600}
+.splash-powered a{color:var(--primary);font-weight:700;text-decoration:none;font-size:13px}
+@keyframes floatIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fillBar{from{width:0}to{width:100%}}
+
+/* ══ LOGIN ══ */
+#login{display:none;min-height:100vh;background:linear-gradient(150deg,#e6f4ee 0%,var(--bg) 55%);flex-direction:column}
+#login.on{display:flex}
+.login-scroll{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 20px calc(20px + env(safe-area-inset-bottom));gap:0}
+.login-hero{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
+.login-icon{width:56px;height:56px;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.login-icon svg{width:30px;height:30px;fill:white}
+.login-title{font-family:'Epilogue',sans-serif;font-size:30px;font-weight:900;letter-spacing:-0.03em;color:var(--primary);line-height:1}
+.login-sub{font-size:11px;color:var(--text3);margin-top:5px;text-align:center;text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+.login-card{width:100%;max-width:380px;background:var(--glass);border:1px solid rgba(0,109,74,0.12);border-radius:var(--r3);padding:26px 22px;box-shadow:var(--shadow2)}
+.login-card-h{font-family:'Epilogue',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.login-card-s{font-size:13px;color:var(--text3);margin-bottom:20px}
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fld label{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:0.09em;text-transform:uppercase;margin-left:4px}
+.fld-inner{position:relative}
+.fld-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:var(--text3);pointer-events:none}
+.fld input{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:13px 14px 13px 38px;color:var(--text);font-family:'Manrope',sans-serif;font-size:15px;outline:none;width:100%;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none}
+.fld input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-bg)}
+.fld input::placeholder{color:var(--text3)}
+.fld-row{display:flex;align-items:center;justify-content:space-between}
+.fld-row a{font-size:11px;font-weight:700;color:var(--amber);text-decoration:none;letter-spacing:0.05em;text-transform:uppercase}
+.btn-login{width:100%;padding:14px;background:var(--primary);border:none;border-radius:var(--r);color:#fff;font-family:'Epilogue',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;letter-spacing:0.05em;text-transform:uppercase;transition:all 0.2s;-webkit-appearance:none}
+.btn-login:active{transform:scale(0.97);background:var(--primary2)}
+.login-divider{display:flex;align-items:center;gap:10px;margin:16px 0}
+.login-divider-line{flex:1;height:1px;background:var(--border2)}
+.login-divider-txt{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap}
+.login-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-sec{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;background:var(--bg4);border:none;border-radius:var(--r);color:var(--text);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s}
+.btn-sec svg{width:16px;height:16px;fill:var(--primary)}
+.btn-sec:active{background:var(--bg5)}
+.login-err{background:var(--red-bg);border:1px solid rgba(186,26,26,0.2);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--red);margin-top:10px;display:none}
+.login-err.on{display:block}
+.login-footer{margin-top:20px;width:100%;max-width:380px}
+.login-join{font-size:13px;color:var(--text3);text-align:center;margin-bottom:12px}
+.login-join a{color:var(--primary);font-weight:700;text-decoration:none}
+.ad-block{background:var(--bg2);border:1px solid var(--primary-border);border-radius:var(--r2);padding:16px;display:flex;flex-direction:column;gap:8px}
+.ad-top{display:flex;align-items:center;gap:10px}
+.ad-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.ad-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary)}
+.ad-title{font-family:'Epilogue',sans-serif;font-size:15px;font-weight:800;color:var(--text)}
+.ad-desc{font-size:12px;color:var(--text3);line-height:1.5}
+.ad-link{display:inline-block;padding:8px 16px;background:var(--primary-bg);border:1px solid var(--primary-border);border-radius:20px;color:var(--primary);font-size:12px;font-weight:700;text-decoration:none;transition:all 0.2s;align-self:flex-start}
+.ad-link:active{background:var(--primary);color:#fff}
+
+/* ══ APP ══ */
+#app{display:none;flex-direction:column;height:100vh;overflow:hidden}
+#app.on{display:flex}
+.app-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+
+/* ══ TOP BAR ══ */
+.topbar{display:flex;align-items:center;padding:14px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top));background:rgba(248,249,248,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;gap:12px}
+.tb-logo{display:flex;align-items:center;gap:8px;flex:1}
+.tb-logo-icon{width:28px;height:28px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.tb-logo-icon svg{width:16px;height:16px;fill:white}
+.tb-name{font-family:'Epilogue',sans-serif;font-size:20px;font-weight:900;letter-spacing:-0.02em;color:var(--primary)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.avatar-btn{position:relative;width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid var(--primary-border);cursor:pointer;background:var(--primary-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--primary);flex-shrink:0;transition:all 0.2s}
+.avatar-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.avatar-btn:active{transform:scale(0.92)}
+
+/* ── USER DROPDOWN ── */
+.user-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:240px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 12px 40px rgba(0,0,0,0.12);z-index:300;overflow:hidden;animation:dropIn 0.2s cubic-bezier(.34,1.2,.64,1)}
+@keyframes dropIn{from{opacity:0;transform:scale(0.94) translateY(-8px)}to{opacity:1;transform:none}}
+.ud-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--primary-bg)}
+.ud-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid var(--primary-border);flex-shrink:0;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--primary)}
+.ud-avatar img{width:100%;height:100%;object-fit:cover}
+.ud-name{font-size:13px;font-weight:700;color:var(--text)}
+.ud-role{font-size:11px;color:var(--text3);margin-top:1px}
+.ud-horse{font-size:11px;color:var(--primary);margin-top:1px;font-weight:600}
+.ud-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background 0.15s;font-size:13px;color:var(--text)}
+.ud-item:hover{background:var(--bg3)}
+.ud-item.danger{color:var(--red)}
+.ud-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.6;fill:none;stroke:currentColor;stroke-width:2}
+.ud-sep{height:1px;background:var(--border);margin:3px 0}
+.photo-upload-label{cursor:pointer;width:100%;display:flex;align-items:center;gap:12px}
+.photo-upload-label input{display:none}
+
+/* ══ DATE NAV ══ */
+.date-bar{display:flex;align-items:center;padding:12px 16px;gap:10px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.date-bar.weekend-day{background:#faf5ef}
+.date-arrow{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s}
+.date-arrow:active{background:var(--bg4);transform:scale(0.92)}
+.date-center{flex:1;text-align:center}
+.date-dayname{font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.12em}
+.date-big{font-family:'Epilogue',sans-serif;font-size:28px;font-weight:900;letter-spacing:-0.02em;line-height:1;margin:1px 0;color:var(--text)}
+.date-big.weekend-title{color:var(--amber)}
+.date-full{font-size:12px;color:var(--text3)}
+.date-pills{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+.dpill{padding:4px 12px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);color:var(--text3);background:transparent;transition:all 0.2s;font-family:'Manrope',sans-serif}
+.dpill:active{transform:scale(0.94)}
+.dpill.green{background:var(--primary-bg);border-color:var(--primary-border);color:var(--primary)}
+
+/* ══ WEEK STRIP ══ */
+.week-strip{display:flex;gap:4px;padding:10px 12px;overflow-x:auto;scrollbar-width:none;background:var(--bg2);border-bottom:1px solid var(--border)}
+.week-strip::-webkit-scrollbar{display:none}
+.wd{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 10px;border-radius:14px;cursor:pointer;flex-shrink:0;transition:all 0.18s;border:1px solid transparent;min-width:46px}
+.wd:active{transform:scale(0.9)}
+.wd.weekend{background:#faf5ef}
+.wd .wdname{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700}
+.wd .wdnum{font-family:'Epilogue',sans-serif;font-size:22px;font-weight:900;line-height:1;color:var(--text2)}
+.wd.active{background:var(--primary);border-color:var(--primary);box-shadow:var(--shadow2)}
+.wd.active .wdname,.wd.active .wdnum{color:#fff}
+.wd.today:not(.active) .wdnum{color:var(--primary)}
+.wd.weekend:not(.active) .wdname{color:var(--amber)}
+.wd .wddots{display:flex;gap:3px;margin-top:2px;height:5px}
+.wddot{width:5px;height:5px;border-radius:50%}
+.wddot.gorka{background:var(--primary)}
+.wddot.plac{background:var(--blue)}
+.wddot.teren{background:#2d7a42}
+.wddot.lonzownik{background:#7b39a0}
+
+/* ══ LOC FILTER ══ */
+.loc-filter{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;scrollbar-width:none;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.loc-filter::-webkit-scrollbar{display:none}
+.lf-pill{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);transition:all 0.18s;letter-spacing:0.04em;text-transform:uppercase;font-family:'Manrope',sans-serif;color:var(--text3)}
+.lf-pill:active{transform:scale(0.92)}
+.lf-all.on{background:var(--text);color:#fff;border-color:var(--text)}
+.lf-gorka{color:var(--primary)}
+.lf-gorka.on{background:var(--primary-bg);border-color:var(--primary)}
+.lf-plac{color:var(--blue)}
+.lf-plac.on{background:var(--blue-bg);border-color:var(--blue)}
+.lf-teren{color:#2d7a42}
+.lf-teren.on{background:rgba(45,122,66,0.1);border-color:#2d7a42}
+.lf-lonzownik{color:#7b39a0}
+.lf-lonzownik.on{background:rgba(123,57,160,0.1);border-color:#7b39a0}
+
+/* ══ CALENDAR BODY ══ */
+.cal-wrap{padding:10px 12px 4px}
+.time-rows{display:flex;flex-direction:column;gap:3px}
+.trow{display:grid;gap:5px;align-items:start}
+.tlbl{font-size:10px;color:var(--text3);font-weight:600;padding-top:14px;text-align:right;flex-shrink:0;width:38px}
+.slot{min-height:58px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:5px 6px;cursor:pointer;transition:background 0.15s;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.slot:active{background:var(--bg3)}
+.slot.slot-weekend{background:#fefaf5;border-color:rgba(123,89,0,0.12)}
+.slot-locname{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.45;margin-bottom:3px;color:var(--text2)}
+
+/* slot cards side-by-side */
+.slot-cards{display:flex;flex-direction:row;gap:4px;min-height:48px}
+.slot-add{flex:0 0 26px;display:flex;align-items:center;justify-content:center;border-radius:7px;border:1.5px dashed var(--border2);color:var(--text3);font-size:18px;font-weight:400;cursor:pointer;transition:all 0.15s;line-height:1;align-self:stretch}
+.slot-add:active{background:var(--bg3);color:var(--text)}
+.bcard{flex:1;min-width:0;border-radius:7px;padding:4px 6px;overflow:hidden;cursor:pointer;transition:opacity 0.15s;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.bcard:active{opacity:0.7}
+.bcard.pensjonat{background:var(--blue-bg);border-left:3px solid var(--blue)}
+.bcard.lekcja{background:var(--green-bg);border-left:3px solid var(--primary)}
+.bcard.blokada{background:var(--bg4);border-left:3px solid var(--text3)}
+.bcard.pending{opacity:0.75}
+.bcard-row{display:flex;align-items:center;justify-content:space-between;gap:3px}
+.bcard-type{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3)}
+.bcard-main{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;color:var(--text)}
+.bcard-sub{font-size:9px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.status-dot.pending{background:var(--amber)}
+.status-dot.confirmed{background:var(--primary)}
+.status-dot.rejected{background:var(--red)}
+
+/* ══ BOTTOM NAV ══ */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;align-items:stretch;padding-bottom:env(safe-area-inset-bottom);height:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+.bnitem{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:transparent;color:var(--text3);padding:8px 0 6px;transition:all 0.2s;font-family:'Manrope',sans-serif;position:relative}
+.bnitem:active{transform:scale(0.9)}
+.bnitem.active{color:var(--primary);background:var(--primary-bg)}
+.bnitem svg{width:22px;height:22px;transition:all 0.2s}
+.bnitem span{font-size:9px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+.bn-badge{position:absolute;top:7px;right:calc(50% - 14px);width:16px;height:16px;background:var(--red);border-radius:50%;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+
+/* ══ ADMIN PANEL ══ */
+.panel-page{padding:16px}
+.section-title{font-family:'Epilogue',sans-serif;font-size:22px;font-weight:900;letter-spacing:-0.02em;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.badge-red{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--red);border-radius:50%;font-size:11px;font-weight:700;color:#fff;font-family:'Manrope',sans-serif}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:16px;box-shadow:var(--shadow)}
+.stat-card.accent{background:linear-gradient(135deg,#e6f4ee,var(--bg2));border-color:var(--primary-border)}
+.stat-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:5px}
+.stat-lbl.green{color:var(--primary)}
+.stat-num{font-family:'Epilogue',sans-serif;font-size:36px;font-weight:900;line-height:1;color:var(--text)}
+.stat-num.green{color:var(--primary)}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.stat-btn{display:inline-block;margin-top:8px;padding:5px 14px;background:var(--primary);color:#fff;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;transition:all 0.2s}
+.stat-btn:active{transform:scale(0.95)}
+
+.pending-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);animation:cardIn 0.3s cubic-bezier(.34,1.2,.64,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px;gap:10px}
+.pc-who{font-size:14px;font-weight:700;color:var(--text)}
+.pc-detail{font-size:11px;color:var(--text3);margin-top:2px}
+.pc-horse{font-size:12px;color:var(--primary);margin-top:2px;font-weight:700}
+.pc-actions{display:flex;gap:7px}
+.apill{flex:1;min-width:0;padding:9px 6px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'Manrope',sans-serif;white-space:nowrap;text-align:center;transition:all 0.18s}
+.apill:active{transform:scale(0.94)}
+.apill.ok{background:var(--green-bg);color:var(--primary);border:1px solid var(--primary-border)}
+.apill.ok:active{background:var(--primary);color:#fff}
+.apill.mv{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(123,89,0,0.2)}
+.apill.mv:active{background:var(--amber);color:#fff}
+.apill.no{background:var(--red-bg);color:var(--red);border:1px solid rgba(186,26,26,0.2)}
+.apill.no:active{background:var(--red);color:#fff}
+
+.user-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:11px;box-shadow:var(--shadow)}
+.uc-av{width:42px;height:42px;border-radius:50%;background:var(--primary-bg);border:2px solid var(--primary-border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--primary);flex-shrink:0;overflow:hidden}
+.uc-av img{width:100%;height:100%;object-fit:cover}
+.uc-body{flex:1;min-width:0}
+.uc-email{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.uc-controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.mini-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:4px 8px;color:var(--text);font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;outline:none;cursor:pointer;-webkit-appearance:none}
+.invite-row{display:flex;gap:8px;margin-bottom:14px}
+.invite-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;outline:none;-webkit-appearance:none;transition:border-color 0.2s}
+.invite-input:focus{border-color:var(--primary)}
+.btn-green{padding:12px 16px;background:var(--primary);border:none;border-radius:var(--r);color:#fff;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.btn-green:active{transform:scale(0.96);background:var(--primary2)}
+
+/* ══ MODALS ══ */
+.overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-top:none;border-radius:var(--r3) var(--r3) 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));width:100%;max-height:92vh;overflow-y:auto;animation:modalUp 0.3s cubic-bezier(.34,1.15,.64,1)}
+@keyframes modalUp{from{transform:translateY(48px);opacity:0}to{transform:none;opacity:1}}
+@media(min-width:600px){.modal{max-width:520px;border-radius:var(--r3);border:1px solid var(--border2);margin-bottom:5vh}}
+.modal-pill{width:36px;height:4px;background:var(--bg5);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-family:'Epilogue',sans-serif;font-size:24px;font-weight:900;letter-spacing:-0.02em;margin-bottom:16px;color:var(--text)}
+.pending-info{background:var(--amber-bg);border:1px solid rgba(123,89,0,0.18);border-radius:var(--r);padding:10px 13px;font-size:13px;color:var(--amber);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.frow{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.flbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.09em}
+.fsel,.finp{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;outline:none;width:100%;transition:border-color 0.2s;-webkit-appearance:none}
+.fsel:focus,.finp:focus{border-color:var(--primary)}
+.fsel option{background:var(--bg2)}
+.ftxt{resize:vertical;min-height:70px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mact{display:flex;gap:10px;margin-top:16px}
+.btn-cancel{flex:1;padding:13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text2);font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-cancel:active{background:var(--bg4)}
+.btn-save{flex:2;padding:13px;background:var(--primary);border:none;border-radius:var(--r);color:#fff;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn-save:active{transform:scale(0.97);background:var(--primary2)}
+.horse-val{font-size:14px;color:var(--primary);font-weight:700;padding:10px 0}
+.detail-loc-pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em}
+.detail-loc-pill.gorka{background:var(--primary-bg);color:var(--primary)}
+.detail-loc-pill.plac{background:var(--blue-bg);color:var(--blue)}
+.detail-loc-pill.teren{background:rgba(45,122,66,0.1);color:#2d7a42}
+.detail-loc-pill.lonzownik{background:rgba(123,57,160,0.1);color:#7b39a0}
+.detail-status{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:20px;margin-bottom:16px;font-size:12px;font-weight:700}
+.detail-status.pending{background:var(--amber-bg);color:var(--amber)}
+.detail-status.confirmed{background:var(--green-bg);color:var(--primary)}
+.detail-status.rejected{background:var(--red-bg);color:var(--red)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.detail-cell{background:var(--bg3);border-radius:var(--r);padding:11px}
+.detail-cell-lbl{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px}
+.detail-cell-val{font-size:13px;font-weight:700;color:var(--text)}
+
+/* ══ FAB ══ */
+.fab{position:fixed;bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));right:18px;z-index:190;width:52px;height:52px;border-radius:50%;background:var(--primary);border:none;color:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,109,74,0.35);transition:all 0.2s;font-weight:300;line-height:1}
+.fab:active{transform:scale(0.9)}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);border-radius:var(--r2);padding:11px 18px;font-size:13px;font-weight:600;color:#fff;box-shadow:0 6px 24px rgba(0,0,0,0.18);z-index:1000;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══ REVEAL ══ */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity 0.35s ease,transform 0.35s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ══ NOTIFICATIONS ══ */
+.notif-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:14px;margin-bottom:8px;box-shadow:var(--shadow);border-left:4px solid var(--border2);transition:all 0.2s}
+.notif-card.unread{border-left-color:var(--primary);background:linear-gradient(90deg,var(--primary-bg),var(--bg2))}
+.notif-card.rejected-n{border-left-color:var(--red)}
+.notif-card.accepted-n{border-left-color:var(--primary)}
+.notif-card.moved-n{border-left-color:var(--amber)}
+.notif-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.notif-detail{font-size:12px;color:var(--text3);margin-top:4px;line-height:1.5}
+.notif-msg{font-size:12px;color:var(--red);margin-top:6px;padding:8px 10px;background:var(--red-bg);border-radius:8px;font-style:italic}
+.notif-time{font-size:10px;color:var(--text3);margin-top:6px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.notif-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0}
+.my-res-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.my-res-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em}
+.my-res-status.pending{background:var(--amber-bg);color:var(--amber)}
+.my-res-status.confirmed{background:var(--green-bg);color:var(--primary)}
+.my-res-status.rejected{background:var(--red-bg);color:var(--red)}
+.profile-tabs{display:flex;gap:0;border-radius:14px;overflow:hidden;border:1px solid var(--border2);background:var(--bg3);margin-bottom:16px}
+.ptab{flex:1;padding:9px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--text3);text-align:center;transition:all 0.2s;font-family:'Manrope',sans-serif;position:relative}
+.ptab.on{background:var(--primary);color:#fff}
+.ptab-badge{position:absolute;top:5px;right:8px;width:14px;height:14px;background:var(--red);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
+
+/* ══ DESKTOP ══ */
+@media(min-width:600px){
+  .date-bar, .week-strip, .loc-filter, .cal-wrap, .panel-page{ max-width:760px; margin-left:auto; margin-right:auto; width:100%; }
+  .topbar{ padding-left:max(16px,calc(50% - 380px)); padding-right:max(16px,calc(50% - 380px)); }
+  .bottom-nav{ padding-left:max(0px,calc(50% - 380px)); padding-right:max(0px,calc(50% - 380px)); }
+  .fab{ right:max(18px,calc(50% - 362px)); }
+  .loc-tabs-desktop{display:grid;gap:6px;margin-bottom:10px}
+  .ltab{padding:7px 4px;border-radius:var(--r);font-size:11px;font-weight:700;text-align:center;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all 0.2s}
+  .ltab-gorka{background:var(--primary-bg);border-color:var(--primary-border);color:var(--primary)}
+  .ltab-plac{background:var(--blue-bg);border-color:rgba(0,98,177,0.2);color:var(--blue)}
+  .ltab-teren{background:rgba(45,122,66,0.1);border-color:rgba(45,122,66,0.22);color:#2d7a42}
+  .ltab-lonzownik{background:rgba(123,57,160,0.1);border-color:rgba(123,57,160,0.22);color:#7b39a0}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ SPLASH ═══════ -->
+<div id="splash">
+  <img src="/L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="width:200px;max-width:70vw;margin-bottom:10px;animation:floatIn 0.8s cubic-bezier(.34,1.4,.64,1) both">
+  <div class="splash-sub">Zarządzanie stajnią</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+  <div class="splash-tip" id="splashTip"></div>
+  <div class="splash-powered">
+    <span class="splash-powered-label">Powered by</span>
+    <a href="https://zenautomations.cloud" target="_blank">ZenAutomations</a>
+  </div>
+</div>
+
+<!-- ═══════ LOGIN ═══════ -->
+<div id="login">
+  <div class="login-scroll">
+    <div class="login-hero">
+      <img src="/L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="width:180px;max-width:65vw;margin-bottom:8px;border-radius:12px">
+      <div class="login-sub">Zarządzanie stajnią</div>
+    </div>
+
+    <div class="login-card">
+      <div class="login-card-h">Witaj z powrotem</div>
+      <div class="login-card-s">Zaloguj się, aby zarządzać harmonogramem stajni</div>
+
+      <div class="fld">
+        <label>Adres e-mail</label>
+        <div class="fld-inner">
+          <svg class="fld-ico" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          <input type="email" id="lemail" placeholder="rider@stajnia.pl" autocomplete="email">
+        </div>
+      </div>
+      <div class="fld">
+        <div class="fld-row">
+          <label>Hasło</label>
+          <a href="#" onclick="doForgotPassword();return false;">Nie pamiętam hasła</a>
+        </div>
+        <div class="fld-inner">
+          <svg class="fld-ico" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          <input type="password" id="lpass" placeholder="••••••••" autocomplete="current-password">
+        </div>
+      </div>
+      <button class="btn-login" onclick="doLogin()">Zaloguj się</button>
+      <div class="login-err" id="lerr">Nieprawidłowy e-mail lub hasło</div>
+
+
+    </div>
+
+    <div class="login-footer">
+      <div class="login-join">Nie masz konta? <a href="https://www.facebook.com/profile.php/?id=61556718902020" target="_blank">Dołącz do stajni</a></div>
+      <div class="ad-block">
+        <div class="ad-top">
+          <div class="ad-dot"></div>
+          <span class="ad-label">Partnerzy technologiczni</span>
+        </div>
+        <div class="ad-title">ZenAutomations</div>
+        <div class="ad-desc">Automatyzacja procesów biznesowych dla małych i średnich firm. Mniej papierkowej roboty, więcej czasu na to co ważne.</div>
+        <a href="https://zenautomations.cloud" target="_blank" class="ad-link">Sprawdź ofertę →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ APP ═══════ -->
+<div id="app" x-data="app()" x-init="init()">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <div class="tb-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+      </div>
+      <span class="tb-name epi" x-text="currentUser.role==='admin'?'STAJNIA — ADMIN':'KONIK DZIECIOM'"></span>
+    </div>
+    <div class="tb-right" style="position:relative">
+      <div class="avatar-btn" @click="showUserMenu=!showUserMenu">
+        <img x-show="currentUser.photo" :src="currentUser.photo" alt="">
+        <span x-show="!currentUser.photo" x-text="userInitials(currentUser)"></span>
+      </div>
+      <div class="user-dropdown" x-show="showUserMenu" @click.outside="showUserMenu=false" x-cloak>
+        <div class="ud-header">
+          <div class="ud-avatar">
+            <img x-show="currentUser.photo" :src="currentUser.photo" alt="">
+            <span x-show="!currentUser.photo" x-text="currentUser.initials||'?'"></span>
+          </div>
+          <div>
+            <div class="ud-name" x-text="fullName(currentUser)||currentUser.email"></div>
+            <div class="ud-role" x-text="roleLabel(currentUser.role)"></div>
+            <div class="ud-horse" x-show="currentUser.horse" x-text="'🐴 '+currentUser.horse"></div>
+          </div>
+        </div>
+        <label class="ud-item photo-upload-label">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+          Zmień zdjęcie
+          <input type="file" accept="image/*" @change="setProfilePhoto($event)">
+        </label>
+        <div class="ud-item" x-show="currentUser.role==='admin'" @click="showUserMenu=false;view='admin'">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-linecap="round"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-linecap="round"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-linecap="round"/></svg>
+          Panel admina
+        </div>
+        <div class="ud-sep"></div>
+        <div class="ud-item danger" @click="logout()">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Wyloguj się
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CALENDAR VIEW ══ -->
+  <div class="app-body" x-show="view==='calendar'" id="swipeTarget">
+
+    <!-- DATE NAV -->
+    <div class="date-bar" :class="isWeekend()?'weekend-day':''">
+      <button class="date-arrow" @click="prev()">‹</button>
+      <div class="date-center">
+        <div class="date-dayname" x-text="dayName()"></div>
+        <div class="date-big" :class="isWeekend()?'weekend-title':''" x-text="dateBig()"></div>
+        <div class="date-full" x-text="dateFull()"></div>
+        <div class="date-pills">
+          <button class="dpill green" @click="goToday()">Dziś</button>
+        </div>
+      </div>
+      <button class="date-arrow" @click="next()">›</button>
+    </div>
+
+    <!-- WEEK STRIP -->
+    <div class="week-strip" id="weekStrip">
+      <template x-for="d in strip14()" :key="d.iso">
+        <div class="wd" :class="{active:d.iso===dateKey(), today:d.isToday, weekend:d.isWeekend}" @click="jumpTo(d.date)">
+          <span class="wdname" x-text="d.sn"></span>
+          <span class="wdnum" x-text="d.n"></span>
+          <div class="wddots">
+            <template x-for="c in d.dots" :key="c">
+              <div class="wddot" :class="c"></div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- LOC FILTER -->
+    <div class="loc-filter" id="locFilter">
+      <button class="lf-pill lf-all" :class="{on:activeLoc===null}" @click="activeLoc=null">Wszystkie</button>
+      <button class="lf-pill lf-gorka" :class="{on:activeLoc==='gorka'}" @click="activeLoc='gorka'">Górka</button>
+      <button class="lf-pill lf-plac" :class="{on:activeLoc==='plac'}" @click="activeLoc='plac'">Plac</button>
+      <button class="lf-pill lf-teren" :class="{on:activeLoc==='teren'}" @click="activeLoc='teren'">Teren</button>
+      <button class="lf-pill lf-lonzownik" :class="{on:activeLoc==='lonzownik'&&!weekView}" @click="activeLoc='lonzownik';weekView=false">Lonżownik</button>
+      <button class="lf-pill" :class="{on:weekView}" style="color:#7b39a0" :style="weekView?'background:rgba(123,57,160,0.1);border-color:#7b39a0':''" @click="weekView=!weekView;activeLoc=null">📅 Tydzień</button>
+    </div>
+
+    <!-- DAY GRID -->
+    <div class="cal-wrap" x-show="!weekView" id="swipeWrap">
+      <div class="time-rows" id="dayGrid">
+        <template x-for="h in hours" :key="h">
+          <div class="trow reveal" :style="'grid-template-columns:38px repeat('+(activeLoc ? 1 : locs.length)+',1fr)'">
+            <div class="tlbl" x-text="fmtTime(h,0)"></div>
+            <template x-for="loc in (activeLoc ? locs.filter(l=>l.id===activeLoc) : locs)" :key="loc.id">
+              <div class="slot" :class="[isWeekend()?'slot-weekend':'']"
+                   @click="booksAt(h,loc.id).length===0 && clickSlot(h,loc.id)">
+                <div x-show="!activeLoc" class="slot-locname" x-text="loc.name"></div>
+                <div class="slot-cards">
+                  <template x-for="b in booksAt(h,loc.id)" :key="b.id">
+                    <div class="bcard" :class="b.type+(b.status==='pending'?' pending':'')" @click.stop="openDetail(b)">
+                      <div class="bcard-row">
+                        <span class="bcard-type" x-text="tLabel(b.type)"></span>
+                        <div class="status-dot" :class="b.status"></div>
+                      </div>
+                      <div class="bcard-main" x-text="b.horse ? '🐴 '+b.horse : (b.note||'—')"></div>
+                      <div class="bcard-sub" x-text="fmtTime(b.startTime,0)+' – '+fmtTime(b.startTime,b.duration)"></div>
+                    </div>
+                  </template>
+                  <div x-show="booksAt(h,loc.id).length===1" class="slot-add" @click.stop="clickSlot(h,loc.id)">+</div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- WEEK OVERVIEW -->
+    <div class="cal-wrap" x-show="weekView" style="overflow-x:auto">
+      <div :style="'display:grid;gap:4px;min-width:520px'">
+        <div :style="'display:grid;grid-template-columns:38px repeat(7,1fr);gap:4px;margin-bottom:6px'">
+          <div></div>
+          <template x-for="d in strip7()" :key="d.iso">
+            <div class="wd" :class="{active:d.iso===dateKey(),today:d.isToday,weekend:d.isWeekend}" @click="jumpTo(d.date)" style="border-radius:10px;padding:6px 4px">
+              <span class="wdname" x-text="d.sn"></span>
+              <span class="wdnum" x-text="d.n"></span>
+            </div>
+          </template>
+        </div>
+        <template x-for="h in hours" :key="h">
+          <div :style="'display:grid;grid-template-columns:38px repeat(7,1fr);gap:4px'">
+            <div class="tlbl" x-text="fmtTime(h,0)"></div>
+            <template x-for="d in strip7()" :key="d.iso">
+              <div :style="'min-height:36px;border-radius:8px;padding:3px 4px;cursor:pointer;overflow:hidden;background:'+(d.isWeekend?'#fefaf5':'var(--bg2)')+';border:1px solid '+(d.isWeekend?'rgba(123,89,0,0.1)':'var(--border2)')"
+                   @click="jumpTo(d.date);weekView=false">
+                <template x-for="b in booksAtDate(h,d.iso)" :key="b.id">
+                  <div :style="'font-size:9px;padding:1px 3px;border-radius:3px;margin-bottom:1px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--primary-bg);color:var(--primary)'"
+                       x-text="b.horse||tLabel(b.type)"></div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ADMIN VIEW ══ -->
+  <div class="app-body" x-show="view==='admin'&&currentUser.role==='admin'">
+    <div class="panel-page">
+
+      <!-- STATS -->
+      <div class="section-title epi" style="margin-bottom:12px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Panel Admina
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-lbl">Rezerwacje dziś</div>
+          <div class="stat-num" x-text="reservations.filter(r=>r.date===dateKey()).length"></div>
+          <div class="stat-sub">na aktywny dzień</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Konie</div>
+          <div class="stat-num" x-text="horses.length"></div>
+          <div class="stat-sub">w stajni</div>
+        </div>
+        <div class="stat-card accent" style="grid-column:span 2">
+          <div class="stat-lbl green">Oczekujące na zatwierdzenie</div>
+          <div class="stat-num green" x-text="pendingList().length"></div>
+          <div class="stat-btn" x-show="pendingList().length>0">Przejrzyj poniżej ↓</div>
+          <div class="stat-sub" x-show="pendingList().length===0" style="color:var(--primary)">Brak oczekujących 🎉</div>
+        </div>
+      </div>
+
+      <!-- PENDING -->
+      <div class="section-title epi">
+        Oczekujące
+        <span class="badge-red" x-show="pendingList().length" x-text="pendingList().length"></span>
+      </div>
+      <template x-if="pendingList().length===0">
+        <div style="color:var(--text3);font-size:13px;margin-bottom:20px;padding:16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center;box-shadow:var(--shadow)">Brak oczekujących rezerwacji 🎉</div>
+      </template>
+      <template x-for="b in pendingList()" :key="b.id">
+        <div class="pending-card">
+          <div class="pc-top">
+            <div>
+              <div class="pc-who" x-text="b.userName||b.userEmail"></div>
+              <div class="pc-detail" x-text="b.date+' · '+fmtTime(b.startTime,0)+' ('+b.duration+' min) · '+lName(b.location)"></div>
+              <div class="pc-horse" x-show="b.horse" x-text="'🐴 '+b.horse"></div>
+              <div x-show="b.note" style="font-size:11px;color:var(--text3);margin-top:3px" x-text="b.note"></div>
+            </div>
+            <div class="status-dot pending" style="width:9px;height:9px;margin-top:4px;flex-shrink:0"></div>
+          </div>
+          <div class="pc-actions">
+            <button class="apill ok" @click="confirm(b)">✓ Zatwierdź</button>
+            <button class="apill mv" @click="openEditPlace(b)">✎ Zmień miejsce</button>
+            <button class="apill no" @click="reject(b)">✕ Odrzuć</button>
+          </div>
+        </div>
+      </template>
+
+      <!-- USERS TOGGLE -->
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 0 10px;border-top:1px solid var(--border);margin-top:6px" @click="showUsersPanel=!showUsersPanel">
+        <div class="section-title epi" style="margin-bottom:0">Użytkownicy <span style="font-size:13px;font-weight:600;color:var(--text3)" x-text="'('+users.length+')'"></span></div>
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:transform 0.2s" :style="showUsersPanel?'transform:rotate(180deg)':''">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div x-show="showUsersPanel" x-transition>
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:14px;margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Zaproś nowego użytkownika</div>
+          <div class="fgrid" style="margin-bottom:8px">
+            <input class="finp" x-model="invName" placeholder="Imię i nazwisko" style="font-size:13px;padding:10px 12px">
+            <input class="finp" x-model="invEmail" type="email" placeholder="email@example.pl" style="font-size:13px;padding:10px 12px">
+          </div>
+          <div class="fgrid" style="margin-bottom:10px">
+            <select class="fsel" x-model="invRole" style="font-size:13px;padding:10px 12px">
+              <option value="owner">Właściciel konia</option>
+              <option value="student">Uczeń</option>
+              <option value="admin">Admin</option>
+            </select>
+            <select class="fsel" x-model="invHorse" x-show="invRole==='owner'" style="font-size:13px;padding:10px 12px">
+              <option value="">Brak konia</option>
+              <template x-for="h in horses" :key="h"><option :value="h" x-text="h"></option></template>
+            </select>
+            <div x-show="invRole!=='owner'"></div>
+          </div>
+          <button class="btn-green" style="width:100%" @click="invite()" :disabled="invLoading" x-text="invLoading?'Wysyłanie...':'Utwórz konto i wyślij zaproszenie'"></button>
+        </div>
+      <template x-for="u in users" :key="u.id">
+        <div class="user-card">
+          <div class="uc-av">
+            <img x-show="u.photo" :src="u.photo" alt="">
+            <span x-show="!u.photo" x-text="userInitials(u)"></span>
+          </div>
+          <div class="uc-body">
+            <div style="font-size:13px;font-weight:700;color:var(--text)" x-text="fullName(u)||u.email"></div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px" x-text="u.email"></div>
+            <div class="uc-controls">
+              <select class="mini-select" x-model="u.role" @change="saveUserField(u)">
+                <option value="owner">Właściciel</option>
+                <option value="student">Uczeń</option>
+                <option value="admin">Admin</option>
+              </select>
+              <select class="mini-select" x-model="u.horse" @change="saveUserField(u)" x-show="u.role==='owner'">
+                <option value="">Brak konia</option>
+                <template x-for="h in horses" :key="h">
+                  <option :value="h" x-text="h"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+          <button style="padding:7px 11px;background:var(--red-bg);border:1px solid rgba(186,26,26,0.2);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif" @click="removeUser(u)">Usuń</button>
+        </div>
+      </template>
+      </div>
+
+      <!-- KONIE TOGGLE -->
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 0 10px;border-top:1px solid var(--border);margin-top:6px" @click="showHorsesPanel=!showHorsesPanel">
+        <div class="section-title epi" style="margin-bottom:0">🐴 Konie <span style="font-size:13px;font-weight:600;color:var(--text3)" x-text="'('+horses.length+')'"></span></div>
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:transform 0.2s" :style="showHorsesPanel?'transform:rotate(180deg)':''">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div x-show="showHorsesPanel" x-transition>
+        <template x-for="(h,i) in horses" :key="i">
+          <div style="display:flex;gap:8px;margin-bottom:7px;align-items:center">
+            <input class="finp" :value="h" @input="horses[i]=$event.target.value" @blur="saveHorses()" style="flex:1">
+            <button style="padding:9px 13px;background:var(--red-bg);border:1px solid rgba(186,26,26,0.2);border-radius:var(--r);color:var(--red);font-size:14px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif" @click="horses.splice(i,1);saveHorses()">✕</button>
+          </div>
+        </template>
+        <button class="btn-cancel" style="width:100%;margin-top:4px" @click="horses.push('Nowy koń');saveHorses()">+ Dodaj konia</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PROFIL ══ -->
+  <div class="app-body" x-show="view==='profile'">
+    <div class="panel-page">
+      <div class="section-title epi">Mój profil</div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:16px;margin-bottom:20px;box-shadow:var(--shadow)">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--primary-bg);border:2px solid var(--primary-border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--primary);flex-shrink:0">
+          <img x-show="currentUser.photo" :src="currentUser.photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">
+          <span x-show="!currentUser.photo" x-text="currentUser.initials"></span>
+        </div>
+        <div>
+          <div style="font-family:'Epilogue',sans-serif;font-size:18px;font-weight:900;color:var(--text)" x-text="fullName(currentUser)||currentUser.email"></div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px" x-text="roleLabel(currentUser.role)"></div>
+          <div style="font-size:12px;color:var(--primary);font-weight:700;margin-top:2px" x-show="currentUser.horse" x-text="'🐴 '+currentUser.horse"></div>
+        </div>
+      </div>
+
+      <!-- BANNER ZEN -->
+      <div style="background:linear-gradient(135deg,#e6f4ee,#f0faf5);border:1px solid var(--primary-border);border-radius:var(--r2);padding:16px 18px;margin-bottom:20px;position:relative;overflow:hidden">
+        <div style="position:absolute;right:-10px;top:-10px;width:80px;height:80px;background:var(--primary-bg);border-radius:50%;opacity:0.5"></div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin-bottom:6px">Podoba Ci się ta aplikacja?</div>
+        <div style="font-family:'Epilogue',sans-serif;font-size:16px;font-weight:900;color:var(--text);margin-bottom:4px">Zrobimy taką dla Ciebie</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.5">Automatyzacje i aplikacje webowe dla małych firm. Bez kosmicznych budżetów.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="Calendly.initPopupWidget({url:'https://calendly.com/aifinity-cloud/ai-discovery'});return false;" style="display:flex;align-items:center;gap:6px;padding:9px 16px;background:var(--primary);color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all 0.2s" onmouseover="this.style.background='var(--primary2)'" onmouseout="this.style.background='var(--primary)'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+            Umów rozmowę
+          </button>
+          <a href="https://zenautomations.cloud" target="_blank" style="display:flex;align-items:center;gap:6px;padding:9px 16px;background:transparent;color:var(--primary);border:1px solid var(--primary-border);border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;text-decoration:none;transition:all 0.2s">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--primary)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            zenautomations.cloud
+          </a>
+        </div>
+      </div>
+      <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+      <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+
+      <div class="profile-tabs">
+        <button class="ptab" :class="{on:profileTab==='notif'}" @click="profileTab='notif';markNotifsRead()">
+          Powiadomienia
+          <span class="ptab-badge" x-show="unreadCount()>0" x-text="unreadCount()"></span>
+        </button>
+        <button class="ptab" :class="{on:profileTab==='reservations'}" @click="profileTab='reservations'">Moje rezerwacje</button>
+      </div>
+
+      <!-- POWIADOMIENIA -->
+      <div x-show="profileTab==='notif'">
+        <template x-if="myNotifs().length===0">
+          <div style="color:var(--text3);font-size:13px;padding:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center">Brak powiadomień 🎉</div>
+        </template>
+        <template x-for="n in myNotifs()" :key="n.id">
+          <div class="notif-card" :class="[n.read?'':'unread', n.type+'-n']">
+            <div class="notif-title">
+              <div class="notif-unread-dot" x-show="!n.read"></div>
+              <span x-text="{accepted:'✅ Rezerwacja zatwierdzona',rejected:'❌ Rezerwacja odrzucona',moved:'📍 Zmieniono miejsce'}[n.type]||n.type"></span>
+            </div>
+            <div class="notif-detail" x-text="n.bookingDate+' · '+n.bookingTime+' · '+n.bookingLoc+(n.horse?' · 🐴 '+n.horse:'')"></div>
+            <div class="notif-msg" x-show="n.message" x-text="'Powód: '+n.message"></div>
+            <div class="notif-time" x-text="fmtNotifAge(n.createdAt)"></div>
+          </div>
+        </template>
+        <button x-show="myNotifs().length>0" class="btn-cancel" style="width:100%;margin-top:8px;font-size:12px" @click="clearReadNotifs()">Wyczyść przeczytane</button>
+      </div>
+
+      <!-- MOJE REZERWACJE -->
+      <div x-show="profileTab==='reservations'">
+        <template x-if="myReservations().length===0">
+          <div style="color:var(--text3);font-size:13px;padding:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center">Nie masz jeszcze żadnych rezerwacji</div>
+        </template>
+        <template x-for="b in myReservations()" :key="b.id">
+          <div class="my-res-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-family:'Epilogue',sans-serif;font-size:15px;font-weight:800;color:var(--text)" x-text="tLabel(b.type)"></div>
+              <div class="my-res-status" :class="b.status" x-text="{pending:'Oczekuje',confirmed:'Zatwierdzona',rejected:'Odrzucona'}[b.status]"></div>
+            </div>
+            <div style="font-size:12px;color:var(--text2)" x-text="b.date+' · '+fmtTime(b.startTime,0)+' – '+fmtTime(b.startTime,b.duration)"></div>
+            <div style="font-size:12px;color:var(--primary);font-weight:600;margin-top:3px" x-text="lName(b.location)+(b.horse?' · 🐴 '+b.horse:'')"></div>
+            <div x-show="b.rejectMessage" style="font-size:11px;color:var(--red);margin-top:6px;padding:6px 10px;background:var(--red-bg);border-radius:8px" x-text="'Powód odrzucenia: '+b.rejectMessage"></div>
+          </div>
+        </template>
+      <!-- LINKI PRAWNE -->
+      <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
+        <span style="font-size:11px;color:var(--text3)">Korzystając z aplikacji akceptujesz </span>
+        <a href="/terms.html" target="_blank" style="font-size:11px;color:var(--primary);font-weight:700;text-decoration:none">Regulamin</a>
+        <span style="font-size:11px;color:var(--text3)"> i </span>
+        <a href="/privacy.html" target="_blank" style="font-size:11px;color:var(--primary);font-weight:700;text-decoration:none">Politykę Prywatności</a>
+        <div style="margin-top:6px;font-size:10px;color:var(--text3)">Dane przechowywane w Firebase · Warszawa (PL) · Zgodnie z RODO</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" x-show="view==='calendar'" @click="openModal()">+</button>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="bnitem" :class="{active:view==='calendar'}" @click="view='calendar'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Kalendarz</span>
+    </button>
+    <button class="bnitem" :class="{active:view==='admin'}" @click="view='admin'" x-show="currentUser.role==='admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div class="bn-badge" x-show="pendingList().length>0" x-text="pendingList().length"></div>
+      <span>Admin</span>
+    </button>
+    <button class="bnitem" :class="{active:view==='profile'}" @click="view='profile';profileTab='notif';markNotifsRead()" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="bn-badge" x-show="unreadCount()>0" x-text="unreadCount()"></div>
+      <span>Profil</span>
+    </button>
+  </div>
+
+  <!-- MODAL: NOWA REZERWACJA -->
+  <div class="overlay" x-show="showModal" @click.self="showModal=false" x-cloak>
+    <div class="modal">
+      <div class="modal-pill"></div>
+      <div class="modal-title epi" x-text="editId?'Edytuj rezerwację':'Nowa rezerwacja'"></div>
+      <div class="pending-info" x-show="currentUser.role!=='admin'">
+        <span>⏳</span> Prośba wymaga zatwierdzenia przez administratora
+      </div>
+      <div class="frow" x-show="currentUser.role==='admin'">
+        <div class="flbl">Typ rezerwacji</div>
+        <select class="fsel" x-model="form.type">
+          <option value="pensjonat">🔒 Pensjonat</option>
+          <option value="lekcja">📚 Lekcja</option>
+          <option value="blokada">⛔ Blokada</option>
+        </select>
+      </div>
+      <div class="fgrid">
+        <div class="frow">
+          <div class="flbl">Godzina</div>
+          <select class="fsel" x-model.number="form.startTime">
+            <template x-for="h in hours" :key="h"><option :value="h" x-text="fmtTime(h,0)"></option></template>
+          </select>
+        </div>
+        <div class="frow">
+          <div class="flbl">Czas trwania</div>
+          <select class="fsel" x-model="form.duration" @change="form.duration=parseInt($event.target.value)">
+            <option :value="30">30 min</option>
+            <option :value="60">1 godz.</option>
+            <option :value="90">1,5 godz.</option>
+            <option :value="120">2 godz.</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="flbl">Miejsce <span style="color:var(--text3);font-weight:400">(sugestia)</span></div>
+        <select class="fsel" x-model="form.location">
+          <template x-for="l in locs" :key="l.id"><option :value="l.id" x-text="l.name"></option></template>
+        </select>
+      </div>
+      <div class="frow" x-show="currentUser.role==='admin'">
+        <div class="flbl">Koń</div>
+        <select class="fsel" x-model="form.horse">
+          <option value="">— brak —</option>
+          <template x-for="h in horses" :key="h"><option :value="h" x-text="'🐴 '+h"></option></template>
+        </select>
+      </div>
+      <div class="frow" x-show="currentUser.role!=='admin' && currentUser.horse">
+        <div class="flbl">Twój koń</div>
+        <div class="horse-val">🐴 <span x-text="currentUser.horse"></span></div>
+      </div>
+      <div class="frow">
+        <div class="flbl">Notatka</div>
+        <textarea class="finp ftxt" x-model="form.note" placeholder="Dodatkowe informacje..."></textarea>
+      </div>
+      <div class="mact">
+        <button class="btn-cancel" @click="showModal=false">Anuluj</button>
+        <button class="btn-save" @click="save()" x-text="currentUser.role==='admin'?'Zapisz':'Wyślij prośbę'"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ODRZUĆ Z WIADOMOŚCIĄ -->
+  <div class="overlay" x-show="showRejectModal" @click.self="showRejectModal=false" x-cloak>
+    <div class="modal">
+      <div class="modal-pill"></div>
+      <div class="modal-title epi">Odrzuć rezerwację</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:14px" x-text="rejectTarget?(rejectTarget.userName||rejectTarget.userEmail)+' · '+fmtTime(rejectTarget.startTime,0)+' · '+lName(rejectTarget.location):''"></div>
+      <div class="frow">
+        <div class="flbl">Powód odrzucenia <span style="color:var(--text3);font-weight:400">(opcjonalnie)</span></div>
+        <textarea class="finp ftxt" x-model="rejectMsg" placeholder="np. Miejsce już zajęte, kolizja z inną rezerwacją..."></textarea>
+      </div>
+      <div class="mact">
+        <button class="btn-cancel" @click="showRejectModal=false">Anuluj</button>
+        <button class="apill no" style="flex:2;padding:13px;font-size:14px;border-radius:var(--r)" @click="doReject()">✕ Odrzuć</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ZMIEŃ MIEJSCE -->
+  <div class="overlay" x-show="showPlaceModal" @click.self="showPlaceModal=false" x-cloak>
+    <div class="modal">
+      <div class="modal-pill"></div>
+      <div class="modal-title epi">Zmień miejsce</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:14px" x-text="editPlaceB?'Rezerwacja: '+(editPlaceB.userName||editPlaceB.userEmail)+' · '+fmtTime(editPlaceB.startTime,0):''"></div>
+      <div class="frow">
+        <div class="flbl">Nowe miejsce</div>
+        <select class="fsel" x-model="editPlaceLoc">
+          <template x-for="l in locs" :key="l.id"><option :value="l.id" x-text="l.name"></option></template>
+        </select>
+      </div>
+      <div class="mact">
+        <button class="btn-cancel" @click="showPlaceModal=false">Anuluj</button>
+        <button class="btn-save" @click="savePlace()">Zatwierdź z nowym miejscem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SZCZEGÓŁY -->
+  <div class="overlay" x-show="showDetail" @click.self="showDetail=false" x-cloak>
+    <div class="modal" x-show="detailB">
+      <div class="modal-pill"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="modal-title epi" style="margin-bottom:0" x-text="tLabel(detailB?.type)"></div>
+        <div :class="'detail-loc-pill '+(detailB?.location||'')" x-text="lName(detailB?.location)"></div>
+      </div>
+      <div class="detail-status" :class="detailB?.status">
+        <div class="status-dot" :class="detailB?.status" style="width:8px;height:8px"></div>
+        <span x-text="{pending:'Oczekuje na zatwierdzenie',confirmed:'Zatwierdzone',rejected:'Odrzucone'}[detailB?.status]||''"></span>
+      </div>
+      <!-- user widzi detale tylko wlasnych rezerwacji -->
+      <div x-show="currentUser.role!=='admin' && detailB?.userEmail!==currentUser.email"
+           style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:16px;text-align:center;color:var(--text3);font-size:13px;margin-bottom:16px">
+        🔒 Szczegóły tej rezerwacji są widoczne tylko dla właściciela.
+      </div>
+      <div x-show="currentUser.role==='admin' || detailB?.userEmail===currentUser.email">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+          <div class="detail-grid">
+            <div class="detail-cell"><div class="detail-cell-lbl">Data</div><div class="detail-cell-val" x-text="detailB?.date"></div></div>
+            <div class="detail-cell"><div class="detail-cell-lbl">Godzina</div><div class="detail-cell-val" x-text="detailB ? fmtTime(detailB.startTime,0)+' – '+fmtTime(detailB.startTime,detailB.duration) : ''"></div></div>
+          </div>
+          <div class="detail-grid" x-show="detailB?.horse||detailB?.userName">
+            <div class="detail-cell" x-show="detailB?.horse"><div class="detail-cell-lbl">Koń</div><div class="detail-cell-val" style="color:var(--primary)" x-text="'🐴 '+(detailB?.horse||'')"></div></div>
+            <div class="detail-cell" x-show="detailB?.userName"><div class="detail-cell-lbl">Osoba</div><div class="detail-cell-val" x-text="detailB?.userName||''"></div></div>
+          </div>
+          <div class="detail-cell" x-show="detailB?.note"><div class="detail-cell-lbl">Notatka</div><div class="detail-cell-val" style="font-weight:400" x-text="detailB?.note"></div></div>
+        </div>
+        <div x-show="currentUser.role==='admin' && detailB?.status==='pending'">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Akcje admina</div>
+          <div style="display:flex;gap:8px">
+            <button class="apill ok" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="confirm(detailB);showDetail=false">✓ Zatwierdź</button>
+            <button class="apill mv" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="showDetail=false;openEditPlace(detailB)">✎ Zmień miejsce</button>
+            <button class="apill no" style="padding:13px;font-size:13px;border-radius:var(--r)" @click="reject(detailB);showDetail=false">✕ Odrzuć</button>
+          </div>
+        </div>
+        <div style="margin-top:12px" x-show="currentUser.role==='admin' && detailB?.status!=='pending'">
+          <button class="apill no" style="width:100%;padding:12px;font-size:13px;border-radius:var(--r)" @click="deleteBooking(detailB);showDetail=false">🗑 Usuń rezerwację</button>
+        </div>
+      </div>
+      <button class="btn-cancel" style="width:100%;margin-top:10px" @click="showDetail=false">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" :class="{on:toastOn}" x-text="toastMsg"></div>
+</div>
+
+<script>
+// ╔═════════════════════════════════════╗
+// ║  FIREBASE CONFIG — wklej swój config  ║
+// ╚═════════════════════════════════════╝
+const firebaseConfig = {
+  apiKey: 'AIzaSyCENLe_Fa7117n0wzwjHsTsh3rF_Bn98k4',
+  authDomain: 'konik-dzieciom.firebaseapp.com',
+  projectId: 'konik-dzieciom',
+  storageBucket: 'konik-dzieciom.firebasestorage.app',
+  messagingSenderId: '550878211370',
+  appId: '1:550878211370:web:4facf44665efd9b2bf4253'
+};
+
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const fbDb  = firebase.firestore();
+
+// Drugi app — do tworzenia kont bez wylogowania admina
+const fbSecondary = firebase.initializeApp(firebaseConfig, 'Secondary');
+const fbAuthSec   = fbSecondary.auth();
+
+// ── AUTH: logowanie ──
+async function doLogin(){
+  const email = document.getElementById('lemail').value.trim();
+  const pass  = document.getElementById('lpass').value;
+  const err   = document.getElementById('lerr');
+  err.classList.remove('on');
+  try {
+    await fbAuth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    err.textContent = (e.code==='auth/wrong-password'||e.code==='auth/user-not-found'||e.code==='auth/invalid-credential')
+      ? 'Nieprawidłowy e-mail lub hasło'
+      : 'Błąd: '+e.message;
+    err.classList.add('on');
+    document.getElementById('lpass').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('lpass').style.borderColor='',2000);
+  }
+}
+async function doForgotPassword(){
+  const email = document.getElementById('lemail').value.trim();
+  if(!email){alert('Wpisz adres e-mail');return;}
+  try{
+    await fbAuth.sendPasswordResetEmail(email);
+    alert('✅ Link do resetu hasła wysłany na '+email);
+  }catch(e){alert('Błąd: '+e.message);}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('lpass')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('lemail')?.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('lpass').focus();});
+});
+
+// ── SPLASH TIPS ──
+(()=>{
+  const tips=[
+    'AI nie nakarmi konia… ale ogarnie 80% Twojej papierkologii 🐎',
+    'Mniej klikania, więcej jeżdżenia — AI robi nudne rzeczy za Ciebie',
+    'Twoja stajnia działa sprawniej niż galop — sprawdzić, co może AI',
+    'AI nie wsiądzie w siodło… ale ogarnie całą resztę 🧠',
+    'Zamiast 10 telefonów — jedno kliknięcie. Resztę robi AI',
+    'AI działa szybciej niż koń na widok marchewki 🥕',
+  ];
+  const el=document.getElementById('splashTip');
+  if(el){
+    const tip=tips[Math.floor(Math.random()*tips.length)];
+    el.textContent=tip;
+  }
+})();
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const sp=document.getElementById('splash');
+    sp.classList.add('out');
+    setTimeout(()=>{ sp.style.display='none'; },500);
+  },3600);
+});
+
+// Firebase Auth state — tu decydujemy co pokazać
+fbAuth.onAuthStateChanged(async user=>{
+  if(user){
+    const doc = await fbDb.collection('users').doc(user.uid).get();
+    if(doc.exists){
+      window._fbProfile = {uid:user.uid, email:user.email, ...doc.data()};
+      document.getElementById('login').classList.remove('on');
+      document.getElementById('app').classList.add('on');
+      document.dispatchEvent(new CustomEvent('fbReady',{detail:window._fbProfile}));
+    } else {
+      // profil nie istnieje — możliwe że konto właśnie tworzone przez admina
+      fbAuth.signOut();
+    }
+  } else {
+    document.getElementById('app').classList.remove('on');
+    document.getElementById('login').classList.add('on');
+  }
+});
+
+// ══ ALPINE APP ══
+function app(){
+  return {
+    view:'calendar',
+    weekView:false,
+    date:new Date(),
+    currentUser:{},
+    hours: Array.from({length:27},(_,i)=>7+i*0.5),
+    locs:[
+      {id:'gorka',name:'Górka'},
+      {id:'plac',name:'Plac'},
+      {id:'teren',name:'Teren'},
+      {id:'lonzownik',name:'Lonżownik'},
+    ],
+    horses:[],
+    users:[],
+    reservations:[],
+    notifications:[],
+    activeLoc:null,
+    showDetail:false, detailB:null,
+    showModal:false, editId:null,
+    form:{type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:''},
+    showPlaceModal:false, editPlaceB:null, editPlaceLoc:'gorka',
+    showRejectModal:false, rejectTarget:null, rejectMsg:'',
+    showUserMenu:false,
+    showUsersPanel:false,
+    showHorsesPanel:false,
+    invEmail:'', invName:'', invRole:'owner', invHorse:'', invLoading:false,
+    profileTab:'notif',
+    toastOn:false, toastMsg:'',
+    _unsubRes:null, _unsubNotif:null,
+
+    async init(){
+      // jeśli auth już gotowy
+      if(window._fbProfile){
+        this.currentUser = window._fbProfile;
+        await this._start();
+      }
+      document.addEventListener('fbReady', async e=>{
+        this.currentUser = e.detail;
+        await this._start();
+      });
+    },
+
+    async _start(){
+      await this.loadHorses();
+      await this.loadUsers();
+      this._listenReservations();
+      this._listenNotifications();
+      this.$watch('view',()=>setTimeout(()=>this.revealCards(),100));
+      setTimeout(()=>this.revealCards(),300);
+      this.$nextTick(()=>this.setupSwipe());
+    },
+
+    // ─ FIRESTORE LISTENERS (real-time) ─
+    _listenReservations(){
+      if(this._unsubRes) this._unsubRes();
+      this._unsubRes = fbDb.collection('reservations')
+        .onSnapshot(snap=>{
+          this.reservations = snap.docs.map(d=>({id:d.id,...d.data()}));
+          this.$nextTick(()=>this.revealCards());
+        });
+    },
+    _listenNotifications(){
+      if(this._unsubNotif) this._unsubNotif();
+      this._unsubNotif = fbDb.collection('notifications')
+        .where('userEmail','==',this.currentUser.email)
+        .orderBy('createdAt','desc')
+        .limit(50)
+        .onSnapshot(snap=>{
+          this.notifications = snap.docs.map(d=>({id:d.id,...d.data()}));
+        });
+    },
+
+    // ─ DATA LOAD ─
+    // pomocnicze: pełne imię z name+surname
+    fullName(u){ return u ? [u.name, u.surname].filter(Boolean).join(' ') : ''; },
+    userInitials(u){
+      if(!u) return '?';
+      if(u.initials) return u.initials;
+      const n = u.name?.[0]||'';
+      const s = u.surname?.[0]||'';
+      return (n+s).toUpperCase()||u.email?.[0]?.toUpperCase()||'?';
+    },
+
+    async loadHorses(){
+      const doc = await fbDb.collection('config').doc('horses').get();
+      this.horses = doc.exists ? (doc.data().list||[]) : ['Mundo','Darek','Lucky','Kluska','Brooklin'];
+    },
+    async loadUsers(){
+      if(this.currentUser.role!=='admin') return;
+      const snap = await fbDb.collection('users').get();
+      this.users = snap.docs.map(d=>({id:d.id,...d.data()}));
+    },
+
+    // ─ WRITE ─
+    async putDB(r){
+      await fbDb.collection('reservations').doc(r.id).set(r);
+    },
+    async deleteBooking(b){
+      await fbDb.collection('reservations').doc(b.id).delete();
+      this.toast('🗑 Rezerwacja usunięta');
+    },
+    async saveHorses(){
+      await fbDb.collection('config').doc('horses').set({list:this.horses});
+    },
+    async saveUserField(u){
+      await fbDb.collection('users').doc(u.id).update({role:u.role, horse:u.horse||''});
+    },
+    async removeUser(u){
+      await fbDb.collection('users').doc(u.id).delete();
+      this.users = this.users.filter(x=>x.id!==u.id);
+      this.toast('🗑 Usunięto profil użytkownika');
+    },
+
+    // ─ INVITE (tworzy konto Firebase Auth + profil Firestore + wysyla reset hasła) ─
+    async invite(){
+      if(!this.invEmail.trim()||!this.invName.trim()){this.toast('❌ Wypełnij imię i e-mail');return;}
+      this.invLoading=true;
+      try{
+        const tempPass='Temp'+Math.random().toString(36).slice(2,10)+'!';
+        const cred = await fbAuthSec.createUserWithEmailAndPassword(this.invEmail.trim(), tempPass);
+        const uid  = cred.user.uid;
+        const parts = this.invName.trim().split(' ');
+        const firstName = parts[0]||'';
+        const lastName  = parts.slice(1).join(' ');
+        const initials = (firstName[0]||('')+((lastName[0])||'')).toUpperCase();
+        const profile = {
+          email:    this.invEmail.trim(),
+          name:     firstName,
+          surname:  lastName,
+          initials,
+          role:     this.invRole,
+          horse:    this.invHorse||'',
+          photo:    '',
+          createdAt:new Date().toISOString()
+        };
+        await fbDb.collection('users').doc(uid).set(profile);
+        await fbAuthSec.sendPasswordResetEmail(this.invEmail.trim());
+        await fbAuthSec.signOut();
+        this.users.push({id:uid,...profile});
+        this.invEmail=''; this.invName=''; this.invRole='owner'; this.invHorse='';
+        this.toast('✅ Konto utworzone! Użytkownik dostanie e-mail z linkiem do ustawienia hasła.');
+      }catch(e){
+        this.toast('❌ Błąd: '+(e.code==='auth/email-already-in-use'?'Ten e-mail jest już zarejestrowany':e.message));
+      }
+      this.invLoading=false;
+    },
+
+    // ─ PHOTO ─
+    async setProfilePhoto(e){
+      const file=e.target.files[0]; if(!file)return;
+      const reader=new FileReader();
+      reader.onload=async ev=>{
+        const data=ev.target.result;
+        this.currentUser.photo=data;
+        await fbDb.collection('users').doc(this.currentUser.uid).update({photo:data});
+        this.toast('📷 Zdjęcie zaktualizowane');
+      };
+      reader.readAsDataURL(file);
+    },
+
+    // ─ SWIPE ─
+    setupSwipe(){
+      const el=document.getElementById('swipeWrap'); if(!el)return;
+      let sx=0,sy=0,fired=false;
+      el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;fired=false;},{passive:true});
+      el.addEventListener('touchend',e=>{
+        if(fired)return;
+        const dx=e.changedTouches[0].clientX-sx;
+        const dy=Math.abs(e.changedTouches[0].clientY-sy);
+        if(Math.abs(dx)>52&&Math.abs(dx)>dy*1.4){fired=true;if(dx<0)this.next();else this.prev();}
+      },{passive:true});
+    },
+
+    // ─ DATE HELPERS ─
+    dateKey(d){const dt=d||this.date;return dt.toISOString().split('T')[0]},
+    dayName(){return this.date.toLocaleDateString('pl-PL',{weekday:'long'})},
+    dateBig(){return this.date.toLocaleDateString('pl-PL',{day:'numeric',month:'long'})},
+    dateFull(){return this.date.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'})},
+    isWeekend(d){const day=(d||this.date).getDay();return day===0||day===6},
+    prev(){const d=new Date(this.date);d.setDate(d.getDate()-1);this.date=d;this.$nextTick(()=>this.revealCards())},
+    next(){const d=new Date(this.date);d.setDate(d.getDate()+1);this.date=d;this.$nextTick(()=>this.revealCards())},
+    goToday(){this.date=new Date();this.$nextTick(()=>this.revealCards())},
+    jumpTo(d){this.date=new Date(d);this.weekView=false;this.$nextTick(()=>this.revealCards())},
+    strip7(){return this._stripDays(7,0)},
+    strip14(){return this._stripDays(14,-7)},
+    _stripDays(count,startOffset){
+      const days=[];
+      const today=new Date().toISOString().split('T')[0];
+      for(let i=startOffset;i<startOffset+count;i++){
+        const d=new Date(this.date); d.setDate(d.getDate()+i);
+        const iso=d.toISOString().split('T')[0];
+        const dow=d.getDay(); const isWeekend=dow===0||dow===6;
+        const dots=[...new Set(this.reservations.filter(r=>r.date===iso).slice(0,3).map(r=>r.location))];
+        days.push({date:d,iso,isToday:iso===today,isWeekend,
+          sn:d.toLocaleDateString('pl-PL',{weekday:'short'}),n:d.getDate(),dots});
+      }
+      return days;
+    },
+
+    revealCards(){
+      const items=document.querySelectorAll('.reveal');
+      const obs=new IntersectionObserver(entries=>{
+        entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+      },{threshold:0.05});
+      items.forEach((el,i)=>{el.style.transitionDelay=(i*0.025)+'s';obs.observe(el);});
+    },
+
+    // ─ BOOKING HELPERS ─
+    booksAt(h,loc){
+      return this.reservations.filter(r=>r.date===this.dateKey()&&r.location===loc&&r.startTime<=h&&(r.startTime+r.duration/60)>h&&r.status!=='rejected');
+    },
+    booksAtDate(h,iso){
+      return this.reservations.filter(r=>r.date===iso&&r.startTime<=h&&(r.startTime+r.duration/60)>h&&r.status!=='rejected');
+    },
+    pendingList(){return this.reservations.filter(r=>r.status==='pending')},
+    lName(id){return this.locs.find(l=>l.id===id)?.name||id},
+    tLabel(t){return{pensjonat:'Pensjonat',lekcja:'Lekcja',blokada:'Blokada'}[t]||t},
+    roleLabel(r){return{admin:'Administrator',owner:'Właściciel konia',student:'Uczeń'}[r]||r},
+    fmtTime(startHour,addMinutes){
+      const total=startHour*60+(addMinutes||0);
+      return Math.floor(total/60)+':'+(total%60).toString().padStart(2,'0');
+    },
+
+    openDetail(b){this.detailB=b;this.showDetail=true},
+
+    clickSlot(h,loc){
+      if(this.booksAt(h,loc).length>=2)return;
+      this.editId=null;
+      this.form={type:this.currentUser.role==='student'?'lekcja':'pensjonat',startTime:h,duration:60,location:loc,note:'',horse:''};
+      this.showModal=true;
+    },
+    openModal(){
+      this.editId=null;
+      this.form={type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:''};
+      this.showModal=true;
+    },
+
+    async save(){
+      const isAdmin=this.currentUser.role==='admin';
+      const r={
+        id: this.editId||Date.now().toString(),
+        date: this.dateKey(),
+        type: isAdmin?this.form.type:(this.currentUser.role==='student'?'lekcja':'pensjonat'),
+        startTime: this.form.startTime,
+        duration: parseInt(this.form.duration)||60,
+        location: this.form.location,
+        note: this.form.note,
+        horse: isAdmin?(this.form.horse||''):(this.currentUser.horse||''),
+        userEmail: this.currentUser.email,
+        userName:  this.fullName(this.currentUser)||this.currentUser.email,
+        status: isAdmin?'confirmed':'pending',
+        createdAt: new Date().toISOString(),
+      };
+      await this.putDB(r);
+      this.showModal=false;
+      this.toast(isAdmin?'✅ Zapisano':'⏳ Prośba wysłana — czeka na zatwierdzenie');
+    },
+
+    async confirm(b){
+      const upd={...b, status:'confirmed'};
+      await this.putDB(upd);
+      await this.pushNotif(b.userEmail,{type:'accepted',bookingDate:b.date,
+        bookingTime:this.fmtTime(b.startTime,0)+' – '+this.fmtTime(b.startTime,b.duration),
+        bookingLoc:this.lName(b.location),horse:b.horse||'',message:''});
+      this.toast('✅ Zatwierdzone');
+    },
+    reject(b){
+      this.rejectTarget=b; this.rejectMsg='';
+      this.showRejectModal=true;
+      if(this.showDetail)this.showDetail=false;
+    },
+    async doReject(){
+      const b=this.rejectTarget;
+      const upd={...b, status:'rejected', rejectMessage:this.rejectMsg};
+      await this.putDB(upd);
+      await this.pushNotif(b.userEmail,{type:'rejected',bookingDate:b.date,
+        bookingTime:this.fmtTime(b.startTime,0)+' – '+this.fmtTime(b.startTime,b.duration),
+        bookingLoc:this.lName(b.location),horse:b.horse||'',message:this.rejectMsg});
+      this.showRejectModal=false; this.rejectTarget=null; this.rejectMsg='';
+      this.toast('❌ Odrzucono');
+    },
+    openEditPlace(b){this.editPlaceB=b;this.editPlaceLoc=b.location;this.showPlaceModal=true;},
+    async savePlace(){
+      const oldLoc=this.lName(this.editPlaceB.location);
+      const upd={...this.editPlaceB, location:this.editPlaceLoc, status:'confirmed'};
+      await this.putDB(upd);
+      await this.pushNotif(upd.userEmail,{type:'moved',bookingDate:upd.date,
+        bookingTime:this.fmtTime(upd.startTime,0)+' – '+this.fmtTime(upd.startTime,upd.duration),
+        bookingLoc:this.lName(upd.location),horse:upd.horse||'',
+        message:'Poprzednie miejsce: '+oldLoc});
+      this.showPlaceModal=false;
+      this.toast('✅ Miejsce zmienione i zatwierdzone');
+    },
+
+    // ─ NOTIFICATIONS (Firestore) ─
+    async pushNotif(userEmail,data){
+      await fbDb.collection('notifications').add({
+        userEmail,...data,read:false,createdAt:new Date().toISOString()
+      });
+    },
+    myNotifs(){return [...this.notifications];},
+    myReservations(){
+      return this.reservations
+        .filter(r=>r.userEmail===this.currentUser.email)
+        .sort((a,b)=>b.date.localeCompare(a.date)||b.startTime-a.startTime);
+    },
+    unreadCount(){return this.notifications.filter(n=>!n.read).length;},
+    async markNotifsRead(){
+      const batch=fbDb.batch();
+      this.notifications.filter(n=>!n.read).forEach(n=>{
+        batch.update(fbDb.collection('notifications').doc(n.id),{read:true});
+      });
+      await batch.commit();
+    },
+    async clearReadNotifs(){
+      const batch=fbDb.batch();
+      this.notifications.filter(n=>n.read).forEach(n=>{
+        batch.delete(fbDb.collection('notifications').doc(n.id));
+      });
+      await batch.commit();
+      this.toast('🗑 Wyczyszczono przeczytane');
+    },
+    fmtNotifAge(iso){
+      const diff=Date.now()-new Date(iso).getTime();
+      const m=Math.floor(diff/60000);
+      if(m<60)return m<2?'przed chwilą':m+' min temu';
+      const h=Math.floor(m/60);
+      return h<24?h+' godz. temu':Math.floor(h/24)+' dni temu';
+    },
+
+    // ─ LOGOUT ─
+    logout(){
+      if(this._unsubRes)this._unsubRes();
+      if(this._unsubNotif)this._unsubNotif();
+      this.showUserMenu=false;
+      fbAuth.signOut();
+      this.reservations=[];
+      this.currentUser={};
+    },
+
+    toast(msg){this.toastMsg=msg;this.toastOn=true;setTimeout(()=>this.toastOn=false,3000);},
+  };
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
