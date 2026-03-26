@@ -357,6 +357,15 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
 .fsel option{background:var(--bg2)}
 .ftxt{resize:vertical;min-height:70px}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r)}
+.toggle-copy{min-width:0}
+.toggle-title{font-size:13px;font-weight:700;color:var(--text)}
+.toggle-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.toggle-switch{position:relative;width:46px;height:28px;border:none;border-radius:999px;background:var(--bg5);cursor:pointer;transition:background 0.2s;flex-shrink:0}
+.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.14);transition:transform 0.2s}
+.toggle-switch.on{background:var(--primary)}
+.toggle-switch.on::after{transform:translateX(18px)}
+.recur-hint{font-size:11px;color:var(--text3);margin-top:-2px}
 .mact{display:flex;gap:10px;margin-top:16px}
 .btn-cancel{flex:1;padding:13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text2);font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
 .btn-cancel:active{background:var(--bg4)}
@@ -655,23 +664,34 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           <div class="stat-num" x-text="horses.length"></div>
           <div class="stat-sub">w stajni</div>
         </div>
-        <div class="stat-card accent" style="grid-column:span 2">
+        <div class="stat-card accent">
           <div class="stat-lbl green">Oczekujące na zatwierdzenie</div>
           <div class="stat-num green" x-text="pendingList().length"></div>
           <div class="stat-btn" x-show="pendingList().length>0">Przejrzyj poniżej ↓</div>
           <div class="stat-sub" x-show="pendingList().length===0" style="color:var(--primary)">Brak oczekujących 🎉</div>
         </div>
+        <div class="stat-card accent">
+          <div class="stat-lbl green">Po terminie</div>
+          <div class="stat-num green" x-text="overduePendingList().length"></div>
+          <div class="stat-btn" x-show="overduePendingList().length>0">Przejrzyj poniżej ↓</div>
+          <div class="stat-sub" x-show="overduePendingList().length===0" style="color:var(--primary)">Brak niezaakceptowanych rezerwacji po terminie 🎉</div>
+        </div>
       </div>
 
-      <!-- PENDING -->
-      <div class="section-title epi">
-        Oczekujące
-        <span class="badge-red" x-show="pendingList().length" x-text="pendingList().length"></span>
+      <div class="profile-tabs" style="margin-bottom:14px">
+        <button class="ptab" :class="{on:adminRequestFilter==='pending'}" @click="adminRequestFilter='pending'">
+          Oczekujące
+          <span class="ptab-badge" x-show="pendingList().length>0" x-text="pendingList().length"></span>
+        </button>
+        <button class="ptab" :class="{on:adminRequestFilter==='overdue'}" @click="adminRequestFilter='overdue'">
+          Po terminie
+          <span class="ptab-badge" x-show="overduePendingList().length>0" x-text="overduePendingList().length"></span>
+        </button>
       </div>
-      <template x-if="pendingList().length===0">
-        <div style="color:var(--text3);font-size:13px;margin-bottom:20px;padding:16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center;box-shadow:var(--shadow)">Brak oczekujących rezerwacji 🎉</div>
+      <template x-if="adminRequestsList().length===0">
+        <div style="color:var(--text3);font-size:13px;margin-bottom:20px;padding:16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center;box-shadow:var(--shadow)" x-text="adminRequestsEmptyLabel()"></div>
       </template>
-      <template x-for="b in pendingList().slice().sort((a,b)=>b.createdAt?.localeCompare(a.createdAt))" :key="b.id">
+      <template x-for="b in adminRequestsList()" :key="b.id">
         <div class="pending-card">
           <div class="pc-top">
             <div>
@@ -679,6 +699,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
               <div class="pc-detail" x-text="b.date+' · '+fmtTime(b.startTime,0)+' ('+b.duration+' min) · '+lName(b.location)"></div>
               <div class="pc-horse" x-show="b.horse" x-text="'🐴 '+b.horse"></div>
               <div x-show="b.note" style="font-size:11px;color:var(--text3);margin-top:3px" x-text="b.note"></div>
+              <div x-show="adminRequestFilter==='overdue'" style="font-size:11px;color:var(--text3);margin-top:4px">Status: Oczekuje</div>
             </div>
             <div class="status-dot pending" style="width:9px;height:9px;margin-top:4px;flex-shrink:0"></div>
           </div>
@@ -953,11 +974,11 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
           <button class="lf-pill lc" :class="{on:resFilter==='all'}" @click="resFilter='all'">Wszystkie</button>
           <button class="lf-pill lf-gorka lc" :class="{on:resFilter==='confirmed'}" @click="resFilter='confirmed'">Zatwierdzone</button>
-          <button class="lf-pill lc" :class="{on:resFilter==='pending'}" style="color:var(--amber)" :style="resFilter==='pending'?'background:var(--amber-bg);border-color:var(--amber)':''" @click="resFilter='pending'">Oczekujące</button>
+          <button class="lf-pill lc" :class="{on:resFilter==='overdue'}" style="color:var(--amber)" :style="resFilter==='overdue'?'background:var(--amber-bg);border-color:var(--amber)':''" @click="resFilter='overdue'">Po terminie</button>
           <button class="lf-pill lc" :class="{on:resFilter==='rejected'}" style="color:var(--red)" :style="resFilter==='rejected'?'background:var(--red-bg);border-color:var(--red)':''" @click="resFilter='rejected'">Odrzucone</button>
         </div>
         <template x-if="myReservations().length===0">
-          <div style="color:var(--text3);font-size:13px;padding:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center">Nie masz jeszcze żadnych rezerwacji</div>
+          <div style="color:var(--text3);font-size:13px;padding:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);text-align:center" x-text="myReservationsEmptyLabel()"></div>
         </template>
         <template x-for="b in myReservations()" :key="b.id">
           <div class="my-res-card">
@@ -1054,6 +1075,32 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           <template x-for="h in horses" :key="h"><option :value="h" x-text="'🐴 '+h"></option></template>
         </select>
       </div>
+      <div class="frow" x-show="currentUser.role==='admin' && !editId">
+        <div class="flbl">Cykliczne</div>
+        <div class="toggle-row">
+          <div class="toggle-copy">
+            <div class="toggle-title">Dodaj serię terminów</div>
+            <div class="toggle-sub">Tylko przy ręcznym dodawaniu przez admina</div>
+          </div>
+          <button type="button" class="toggle-switch" :class="form.isRecurring ? 'on' : ''" @click="form.isRecurring=!form.isRecurring"></button>
+        </div>
+      </div>
+      <div class="fgrid" x-show="currentUser.role==='admin' && form.isRecurring && !editId">
+        <div class="frow">
+          <div class="flbl">Liczba powtórzeń</div>
+          <input class="finp" type="number" min="1" step="1" x-model.number="form.recurrenceCount" placeholder="np. 4">
+        </div>
+        <div class="frow">
+          <div class="flbl">Typ serii</div>
+          <select class="fsel" x-model="form.recurrenceType">
+            <option value="daily">Dziennie</option>
+            <option value="weekly">Tygodniowo</option>
+          </select>
+        </div>
+      </div>
+      <div class="recur-hint" x-show="currentUser.role==='admin' && form.isRecurring && !editId">
+        Liczba powtórzeń nie liczy pierwszego terminu.
+      </div>
       <div class="frow" x-show="currentUser.role==='owner' && currentUser.horse">
         <div class="flbl">Twój koń</div>
         <div class="horse-val">🐴 <span x-text="currentUser.horse"></span></div>
@@ -1084,6 +1131,29 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
       <div class="mact">
         <button class="btn-cancel" @click="showCancelModal=false">Wróć</button>
         <button class="apill no" style="flex:2;padding:13px;font-size:14px;border-radius:var(--r)" @click="doCancel()">❌ Potwierdź anulowanie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: USUŃ REZERWACJĘ (admin) -->
+  <div class="overlay" x-show="showDeleteModal" @click.self="showDeleteModal=false;deleteTarget=null" x-cloak>
+    <div class="modal">
+      <div class="modal-pill"></div>
+      <div class="modal-title epi">Usuń rezerwację</div>
+      <div style="background:var(--red-bg);border:1px solid rgba(186,26,26,0.15);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px">
+        <span x-text="deleteTarget ? tLabel(deleteTarget.type)+' · '+deleteTarget.date+' · '+fmtTime(deleteTarget.startTime,0)+' – '+fmtTime(deleteTarget.startTime,deleteTarget.duration) : ''"></span>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:16px" x-show="deleteTarget?.seriesId">
+        Ten termin należy do serii. Wybierz, czy usunąć tylko tę jedną rezerwację, czy wszystkie terminy z tej serii.
+      </div>
+      <div class="mact" x-show="!deleteTarget?.seriesId">
+        <button class="btn-cancel" @click="showDeleteModal=false;deleteTarget=null">Wróć</button>
+        <button class="apill no" style="flex:2;padding:13px;font-size:14px;border-radius:var(--r)" @click="doDelete('single')">🗑 Usuń</button>
+      </div>
+      <div class="mact" x-show="deleteTarget?.seriesId">
+        <button class="btn-cancel" @click="showDeleteModal=false;deleteTarget=null">Wróć</button>
+        <button class="btn-cancel" style="flex:1.4" @click="doDelete('single')">Tylko ten termin</button>
+        <button class="apill no" style="flex:1.6;padding:13px;font-size:14px;border-radius:var(--r)" @click="doDelete('series')">Całą serię</button>
       </div>
     </div>
   </div>
@@ -1199,7 +1269,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
           </div>
         </div>
         <div style="margin-top:12px" x-show="currentUser.role==='admin' && detailB?.status!=='pending'">
-          <button class="apill no" style="width:100%;padding:12px;font-size:13px;border-radius:var(--r)" @click="deleteBooking(detailB);showDetail=false">🗑 Usuń rezerwację</button>
+          <button class="apill no" style="width:100%;padding:12px;font-size:13px;border-radius:var(--r)" @click="openDeleteModal(detailB)">🗑 Usuń rezerwację</button>
         </div>
       </div>
       <button class="btn-cancel" style="width:100%;margin-top:10px" @click="showDetail=false">Zamknij</button>
@@ -1400,14 +1470,16 @@ function app(){
     activeLoc:null,
     showDetail:false, detailB:null,
     showModal:false, editId:null,
-    form:{type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:''},
+    form:{type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:'',isRecurring:false,recurrenceCount:4,recurrenceType:'weekly'},
     showPlaceModal:false, editPlaceB:null, editPlaceLoc:'gorka', editPlaceHorse:'',
     showConfirmModal:false, confirmTarget:null, confirmHorse:'',
     showRejectModal:false, rejectTarget:null, rejectMsg:'',
     showCancelModal:false, cancelTarget:null, cancelMsg:'',
+    showDeleteModal:false, deleteTarget:null,
     showUserMenu:false,
     showUsersPanel:false,
     showHorsesPanel:false,
+    adminRequestFilter:'pending',
     expandedUserId:null,
     showDbPanel:false,
     orphanCount:0,
@@ -1553,6 +1625,16 @@ function app(){
       const minutes = Math.round((start - hours) * 60);
       return new Date(year, (month||1)-1, day||1, hours, minutes, 0, 0);
     },
+    reservationEndDateTime(r){
+      const start = this.reservationDateTime(r);
+      if(!start) return null;
+      return new Date(start.getTime() + (Number(r.duration || 0) * 60 * 1000));
+    },
+    isReservationOverdue(r){
+      if(!r || r.status === 'rejected') return false;
+      const end = this.reservationEndDateTime(r);
+      return !!end && end.getTime() < Date.now();
+    },
     userReservations(u){
       return this.reservations.filter(r => r.userEmail === u.email);
     },
@@ -1576,7 +1658,24 @@ function app(){
     async putDB(r){
       await fbDb.collection('reservations').doc(r.id).set(r);
     },
-    async deleteBooking(b){
+    async putManyDB(items){
+      const batch = fbDb.batch();
+      items.forEach(item=>{
+        batch.set(fbDb.collection('reservations').doc(item.id), item);
+      });
+      await batch.commit();
+    },
+    async deleteBooking(b, mode='single'){
+      if(mode==='series' && b.seriesId){
+        const batch = fbDb.batch();
+        const seriesItems = this.reservations.filter(r=>r.seriesId===b.seriesId);
+        seriesItems.forEach(item=>{
+          batch.delete(fbDb.collection('reservations').doc(item.id));
+        });
+        await batch.commit();
+        this.toast(`🗑 Usunięto serię (${seriesItems.length})`);
+        return;
+      }
       await fbDb.collection('reservations').doc(b.id).delete();
       this.toast('🗑 Rezerwacja usunięta');
     },
@@ -1709,6 +1808,21 @@ function app(){
 
     // ─ DATE HELPERS ─
     dateKey(d){const dt=d||this.date;return dt.toISOString().split('T')[0]},
+    toIsoLocal(date){
+      const year = date.getFullYear();
+      const month = String(date.getMonth()+1).padStart(2,'0');
+      const day = String(date.getDate()).padStart(2,'0');
+      return `${year}-${month}-${day}`;
+    },
+    shiftDateKey(iso, days){
+      const [year, month, day] = String(iso).split('-').map(Number);
+      const date = new Date(year, (month||1)-1, day||1);
+      date.setDate(date.getDate()+days);
+      return this.toIsoLocal(date);
+    },
+    recurrenceStepDays(type){
+      return type === 'weekly' ? 7 : 1;
+    },
     dayName(){return this.date.toLocaleDateString('pl-PL',{weekday:'long'})},
     dateBig(){return this.date.toLocaleDateString('pl-PL',{day:'numeric',month:'long'})},
     dateFull(){return this.date.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'})},
@@ -1774,6 +1888,26 @@ function app(){
       });
     },
     pendingList(){return this.reservations.filter(r=>r.status==='pending')},
+    overduePendingList(){
+      return this.reservations
+        .filter(r=>r.status==='pending')
+        .filter(r=>this.isReservationOverdue(r))
+        .sort((a,b)=>{
+          const aTs = this.reservationEndDateTime(a)?.getTime() || 0;
+          const bTs = this.reservationEndDateTime(b)?.getTime() || 0;
+          return bTs - aTs;
+        });
+    },
+    adminRequestsList(){
+      return this.adminRequestFilter==='overdue'
+        ? this.overduePendingList()
+        : this.pendingList().slice().sort((a,b)=>b.createdAt?.localeCompare(a.createdAt));
+    },
+    adminRequestsEmptyLabel(){
+      return this.adminRequestFilter==='overdue'
+        ? 'Brak niezaakceptowanych rezerwacji po terminie 🎉'
+        : 'Brak oczekujących rezerwacji 🎉';
+    },
     cancelledAdminList(){
       return this.reservations
         .filter(r=>r.status==='rejected')
@@ -1830,7 +1964,7 @@ function app(){
       }
       if(this.booksAt(h,loc).length>=2)return;
       this.editId=null;
-      this.form={type:this.currentUser.role==='student'?'lekcja':'pensjonat',startTime:h,duration:60,location:loc,note:'',horse:''};
+      this.form={type:this.currentUser.role==='student'?'lekcja':'pensjonat',startTime:h,duration:60,location:loc,note:'',horse:'',isRecurring:false,recurrenceCount:4,recurrenceType:'weekly'};
       this.showModal=true;
     },
     openModal(){
@@ -1839,7 +1973,7 @@ function app(){
         return;
       }
       this.editId=null;
-      this.form={type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:''};
+      this.form={type:'pensjonat',startTime:9,duration:60,location:'gorka',note:'',horse:'',isRecurring:false,recurrenceCount:4,recurrenceType:'weekly'};
       this.showModal=true;
     },
 
@@ -1857,18 +1991,66 @@ function app(){
         this.toast('❌ Ten koń ma już rezerwację w tym czasie!');
         return;
       }
-      const r={
-        id:this.editId||Date.now().toString(), date,
-        type:isAdmin?this.form.type:(this.currentUser.role==='student'?'lekcja':'pensjonat'),
-        startTime, duration, location:this.form.location, note:this.form.note, horse,
-        userEmail:this.currentUser.email,
-        userName:this.fullName(this.currentUser)||this.currentUser.email,
-        status:isAdmin?'confirmed':'pending',
-        createdAt:new Date().toISOString(),
-      };
-      await this.putDB(r);
+      const type=isAdmin?this.form.type:(this.currentUser.role==='student'?'lekcja':'pensjonat');
+      const createdAt=new Date().toISOString();
+      const isRecurring=isAdmin && !this.editId && !!this.form.isRecurring;
+      const repeatCount=Math.max(0, parseInt(this.form.recurrenceCount,10) || 0);
+      if(isRecurring && repeatCount < 1){
+        this.toast('❌ Podaj liczbę powtórzeń większą od zera');
+        return;
+      }
+      if(isRecurring){
+        const seriesId=`series-${Date.now()}`;
+        const stepDays=this.recurrenceStepDays(this.form.recurrenceType);
+        const items=[];
+        for(let i=0;i<=repeatCount;i++){
+          const occurrenceDate=this.shiftDateKey(date, i*stepDays);
+          if(this.isPastDate(occurrenceDate)){
+            this.toast('❌ Seria nie może zawierać terminów z przeszłości');
+            return;
+          }
+          if(horse && this.isHorseBusy(horse,occurrenceDate,startTime,duration,null)){
+            this.toast(`❌ Ten koń ma już rezerwację: ${occurrenceDate} ${this.fmtTime(startTime,0)}`);
+            return;
+          }
+          items.push({
+            id:`${seriesId}-${i}`,
+            date:occurrenceDate,
+            type,
+            startTime,
+            duration,
+            location:this.form.location,
+            note:this.form.note,
+            horse,
+            userEmail:this.currentUser.email,
+            userName:this.fullName(this.currentUser)||this.currentUser.email,
+            status:'confirmed',
+            createdAt,
+            seriesId,
+            recurrenceType:this.form.recurrenceType,
+            recurrenceCount:repeatCount,
+            seriesIndex:i
+          });
+        }
+        await this.putManyDB(items);
+      }else{
+        const r={
+          id:this.editId||Date.now().toString(), date,
+          type,
+          startTime, duration, location:this.form.location, note:this.form.note, horse,
+          userEmail:this.currentUser.email,
+          userName:this.fullName(this.currentUser)||this.currentUser.email,
+          status:isAdmin?'confirmed':'pending',
+          createdAt,
+        };
+        await this.putDB(r);
+      }
       this.showModal=false;
-      this.toast(isAdmin?'✅ Zapisano':'⏳ Prośba wysłana — czeka na zatwierdzenie');
+      if(isAdmin){
+        this.toast(isRecurring ? `✅ Dodano serię (${repeatCount+1})` : '✅ Zapisano');
+      }else{
+        this.toast('⏳ Prośba wysłana — czeka na zatwierdzenie');
+      }
     },
 
     // modal do zatwierdzania z mozliwoscia przypisania konia
@@ -1910,6 +2092,17 @@ function app(){
       this.toast('❌ Odrzucono');
     },
     openCancelModal(b){ this.cancelTarget=b; this.cancelMsg=''; this.showCancelModal=true; },
+    openDeleteModal(b){
+      this.deleteTarget=b;
+      this.showDeleteModal=true;
+      if(this.showDetail) this.showDetail=false;
+    },
+    async doDelete(mode){
+      if(!this.deleteTarget) return;
+      await this.deleteBooking(this.deleteTarget, mode);
+      this.showDeleteModal=false;
+      this.deleteTarget=null;
+    },
     async doCancel(){
       const b=this.cancelTarget;
       const upd={...b, status:'rejected', rejectMessage:this.cancelMsg?'❌ Anulowano przez użytkownika: '+this.cancelMsg:'❌ Anulowano przez użytkownika'};
@@ -1949,9 +2142,19 @@ function app(){
     myReservations(){
       return this.reservations
         .filter(r=>r.userEmail===this.currentUser.email)
-        .filter(r=>this.resFilter==='all' || r.status===this.resFilter)
+        .filter(r=>{
+          if(this.resFilter==='all') return true;
+          if(this.resFilter==='overdue') return this.isReservationOverdue(r);
+          return r.status===this.resFilter;
+        })
         .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))
         .slice(0,3);
+    },
+    myReservationsEmptyLabel(){
+      if(this.resFilter==='overdue') return 'Nie masz rezerwacji po terminie';
+      if(this.resFilter==='confirmed') return 'Nie masz zatwierdzonych rezerwacji';
+      if(this.resFilter==='rejected') return 'Nie masz odrzuconych rezerwacji';
+      return 'Nie masz jeszcze żadnych rezerwacji';
     },
     unreadCount(){return this.notifications.filter(n=>!n.read).length;},
     async markNotifsRead(){
