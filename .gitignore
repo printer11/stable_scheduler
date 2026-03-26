@@ -43,3 +43,9 @@ _patch.txt
 
 # Node modules (if using npm/yarn)
 node_modules/
+
+# Firebase config (zawiera klucze API — nie commituj!)
+firebase-config.js
+
+# Netlify cache
+.netlify/

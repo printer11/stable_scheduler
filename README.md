@@ -129,23 +129,14 @@ Aplikacja działa jako PWA — można ją zainstalować na telefonie/tablecie �
 
 ## 🔐 Firestore Security Rules
 
-Obecne reguły (tryb testowy — **wygasają 23 kwietnia 2026**):
+Nie używaj już trybu testowego. W repo jest plik [firestore.rules](./firestore.rules) z bezpieczniejszą bazą reguł dla tej aplikacji:
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2026, 4, 23);
-    }
-  }
-}
-```
+- `users/{uid}`: użytkownik czyta/edytuje tylko swój profil, admin zarządza wszystkimi
+- `reservations/{id}`: admin ma pełny dostęp, zwykły użytkownik widzi i tworzy tylko swoje rezerwacje
+- `notifications/{id}`: użytkownik widzi i usuwa tylko swoje powiadomienia
+- `config/horses`: odczyt dla zalogowanych, zapis tylko dla admina
 
-**⚠️ Przed produkcją** należy zabezpieczyć reguły — np.:
-```
-allow read, write: if request.auth != null;
-```
+**Uwaga:** po wdrożeniu tych reguł obecny frontend przestanie pozwalać zwykłym użytkownikom na odczyt całej kolekcji `reservations`. To jest zamierzone z perspektywy bezpieczeństwa i wymaga dostosowania klienta w kolejnym kroku.
 
 ---
 
@@ -158,6 +149,38 @@ git push
 ```
 
 Netlify automatycznie deployuje po pushu na `main`. Czas deployu ~30 sekund.
+
+### Netlify Functions / env
+
+Do działania endpointów admina (`admin-invite-user`, `admin-delete-user`) ustaw w Netlify:
+
+- `FIREBASE_SERVICE_ACCOUNT_BASE64` — base64 z pełnego JSON service account dla Firebase Admin SDK
+- `FIREBASE_WEB_API_KEY` — Web API key z projektu Firebase
+
+### Manual Deploy Note
+
+Przy ręcznym deployu na Netlify folder deployowy musi zawierać lokalny plik `firebase-config.js`, bo `index.html` ładuje go bezpośrednio.
+
+- `firebase-config.js` ma definiować globalne `const firebaseConfig = { ... }`
+- plik **nie powinien być commitowany** do repo
+- plik **musi** znaleźć się w folderze wrzucanym ręcznie do Netlify
+- `service-account.json` **nie może** trafić do folderu deployowego ani do repo
+
+Przykład wygenerowania `FIREBASE_SERVICE_ACCOUNT_BASE64` lokalnie:
+
+```bash
+base64 -i service-account.json | tr -d '\n'
+```
+
+W Firebase potrzebujesz też włączyć:
+
+- Authentication → Email/Password
+- Firestore Database
+
+Po deployu aplikacja wywołuje:
+
+- `/.netlify/functions/admin-invite-user`
+- `/.netlify/functions/admin-delete-user`
 
 ---
 

@@ -501,8 +501,8 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
     <div class="tb-right">
       <!-- Avatar → profil -->
       <div class="avatar-btn" @click="view='profile';profileTab='notif';markNotifsRead();editName=currentUser.name||'';editSurname=currentUser.surname||''" title="Mój profil">
-        <img x-show="currentUser.photo" :src="currentUser.photo" alt="">
-        <span x-show="!currentUser.photo" x-text="userInitials(currentUser)"></span>
+        <img x-show="photoSrc(currentUser.photo)" :src="photoSrc(currentUser.photo)" alt="">
+        <span x-show="!photoSrc(currentUser.photo)" x-text="userInitials(currentUser)"></span>
       </div>
       <!-- Zmień zdjęcie -->
       <label class="tb-icon-btn" title="Zmień zdjęcie profilowe">
@@ -748,8 +748,8 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
         <div class="user-card">
           <div class="user-head clickable" @click="toggleUserExpand(u.id)">
             <div class="uc-av">
-              <img x-show="u.photo" :src="u.photo" alt="">
-              <span x-show="!u.photo" x-text="userInitials(u)"></span>
+              <img x-show="photoSrc(u.photo)" :src="photoSrc(u.photo)" alt="">
+              <span x-show="!photoSrc(u.photo)" x-text="userInitials(u)"></span>
             </div>
             <div class="uc-body">
               <div class="user-head-meta">
@@ -874,8 +874,8 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);ove
       <div class="section-title epi">Mój profil</div>
       <div style="display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:16px;margin-bottom:20px;box-shadow:var(--shadow)">
         <div style="width:52px;height:52px;border-radius:50%;background:var(--primary-bg);border:2px solid var(--primary-border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--primary);flex-shrink:0">
-          <img x-show="currentUser.photo" :src="currentUser.photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">
-          <span x-show="!currentUser.photo" x-text="currentUser.initials"></span>
+          <img x-show="photoSrc(currentUser.photo)" :src="photoSrc(currentUser.photo)" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">
+          <span x-show="!photoSrc(currentUser.photo)" x-text="currentUser.initials"></span>
         </div>
         <div>
           <div style="font-family:'Epilogue',sans-serif;font-size:18px;font-weight:900;color:var(--text)" x-text="fullName(currentUser)||currentUser.email"></div>
@@ -1264,6 +1264,74 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('lemail')?.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('lpass').focus();});
 });
 
+function normalizePhotoValue(photo){
+  const value = String(photo || '').trim();
+  if(!value) return '';
+  if(value.startsWith('data:image/')) return value;
+  if(value.startsWith('/9j/')) return 'data:image/jpeg;base64,' + value;
+  if(value.startsWith('iVBOR')) return 'data:image/png;base64,' + value;
+  if(value.startsWith('R0lGOD')) return 'data:image/gif;base64,' + value;
+  if(value.startsWith('UklGR')) return 'data:image/webp;base64,' + value;
+  if(value.startsWith('http://') || value.startsWith('https://')) return value;
+  return '';
+}
+
+function fileToDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>resolve(String(e.target?.result || ''));
+    reader.onerror = ()=>reject(new Error('Nie udało się odczytać pliku'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.onload = ()=>resolve(img);
+    img.onerror = ()=>reject(new Error('Nie udało się wczytać obrazu'));
+    img.src = src;
+  });
+}
+
+async function optimizeProfilePhoto(file){
+  const src = await fileToDataUrl(file);
+  const img = await loadImage(src);
+  const outputSize = 512;
+  const sourceSize = Math.min(img.width, img.height);
+  const sourceX = Math.max(0, Math.round((img.width - sourceSize) / 2));
+  const sourceY = Math.max(0, Math.round((img.height - sourceSize) / 2));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outputSize;
+  canvas.height = outputSize;
+
+  const ctx = canvas.getContext('2d');
+  if(!ctx) throw new Error('Brak wsparcia dla canvas');
+  ctx.drawImage(
+    img,
+    sourceX,
+    sourceY,
+    sourceSize,
+    sourceSize,
+    0,
+    0,
+    outputSize,
+    outputSize
+  );
+
+  let quality = 0.86;
+  let output = canvas.toDataURL('image/jpeg', quality);
+  while(output.length > 280000 && quality > 0.5){
+    quality -= 0.08;
+    output = canvas.toDataURL('image/jpeg', quality);
+  }
+  if(output.length > 380000){
+    throw new Error('Zdjęcie jest zbyt duże. Wybierz mniejszy plik.');
+  }
+  return output;
+}
+
 // ── SPLASH TIPS ──
 (()=>{
   const tips=[
@@ -1295,7 +1363,8 @@ fbAuth.onAuthStateChanged(async user=>{
   if(user){
     const doc = await fbDb.collection('users').doc(user.uid).get();
     if(doc.exists){
-      window._fbProfile = {uid:user.uid, email:user.email, ...doc.data()};
+      const data = doc.data() || {};
+      window._fbProfile = {uid:user.uid, email:user.email, ...data, photo:normalizePhotoValue(data.photo)};
       document.getElementById('login').classList.remove('on');
       document.getElementById('app').classList.add('on');
       window._fbInitialView = window._fbProfile.role==='admin' ? 'admin' : 'profile';
@@ -1347,7 +1416,7 @@ function app(){
     profileTab:'notif', resFilter:'all',
     editName:'', editSurname:'',
     toastOn:false, toastMsg:'',
-    _unsubRes:null, _unsubNotif:null,
+    _unsubRes:null, _unsubNotif:null, _unsubUsers:null,
 
     async init(){
       // Czekamy na Alpine gotowosć, potem sprawdzamy auth
@@ -1380,7 +1449,7 @@ function app(){
       try{
         if(this.currentUser.role!=='owner') this.currentUser.horse='';
         await this.loadHorses();
-        await this.loadUsers();
+        this._listenUsers();
         this._listenReservations();
         this._listenNotifications();
         this.$watch('view',()=>setTimeout(()=>this.revealCards(),100));
@@ -1416,10 +1485,19 @@ function app(){
             .sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
         });
     },
+    _listenUsers(){
+      if(this.currentUser.role!=='admin') return;
+      if(this._unsubUsers) this._unsubUsers();
+      this._unsubUsers = fbDb.collection('users')
+        .onSnapshot(snap=>{
+          this.users = snap.docs.map(d=>this.hydrateUser(d.id, d.data()));
+        });
+    },
 
     // ─ DATA LOAD ─
     // pomocnicze: pełne imię z name+surname
     fullName(u){ return u ? [u.name, u.surname].filter(Boolean).join(' ') : ''; },
+    photoSrc(photo){ return normalizePhotoValue(photo); },
     userInitials(u){
       if(!u) return '?';
       if(u.initials) return u.initials;
@@ -1445,6 +1523,7 @@ function app(){
         ...data,
         role,
         horse,
+        photo:this.photoSrc(data?.photo),
         _draftRole: role,
         _draftHorse: horse,
         _editingHorse: false,
@@ -1598,14 +1677,21 @@ function app(){
     // ─ PHOTO ─
     async setProfilePhoto(e){
       const file=e.target.files[0]; if(!file)return;
-      const reader=new FileReader();
-      reader.onload=async ev=>{
-        const data=ev.target.result;
-        this.currentUser.photo=data;
+      const input = e.target;
+      const prevPhoto = this.currentUser.photo || '';
+      try{
+        const data = await optimizeProfilePhoto(file);
         await fbDb.collection('users').doc(this.currentUser.uid).update({photo:data});
+        this.currentUser.photo=data;
+        window._fbProfile = {...window._fbProfile, photo:data};
         this.toast('📷 Zdjęcie zaktualizowane');
-      };
-      reader.readAsDataURL(file);
+      }catch(err){
+        this.currentUser.photo=prevPhoto;
+        console.error('setProfilePhoto() error:', err);
+        this.toast('❌ Nie udało się zapisać zdjęcia: ' + err.message);
+      }finally{
+        if(input) input.value='';
+      }
     },
 
     // ─ SWIPE ─
@@ -1902,6 +1988,7 @@ function app(){
     logout(){
       if(this._unsubRes)this._unsubRes();
       if(this._unsubNotif)this._unsubNotif();
+      if(this._unsubUsers)this._unsubUsers();
       this.showUserMenu=false;
       fbAuth.signOut();
       this.reservations=[];
