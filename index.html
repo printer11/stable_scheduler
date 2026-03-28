@@ -90,9 +90,10 @@
 
   <!-- TOP BAR -->
   <div class="topbar">
-    <div class="tb-logo" style="gap:10px">
+    <div class="tb-logo tb-logo-stack" style="gap:10px">
       <img src="assets/L-white_Konikdzieciom_text.png" alt="Konik Dzieciom" style="height:30px;width:auto">
       <span x-show="currentUser.role==='admin'" style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.1em;background:var(--primary-bg);border:1px solid var(--primary-border);border-radius:20px;padding:2px 8px;flex-shrink:0">Admin</span>
+      <div class="build-stamp build-stamp-inline" id="buildStamp"></div>
     </div>
     <div class="tb-right">
       <!-- Avatar → profil -->
@@ -736,7 +737,7 @@
   </div>
 
   <!-- MODAL: ANULUJ REZERWACJĘ (user) -->
-  <div class="overlay" x-show="showCancelModal" @click.self="showCancelModal=false" x-cloak>
+  <div class="overlay" x-show="showCancelModal" @click.self="closeCancelModal()" x-cloak>
     <div class="modal">
       <div class="modal-pill"></div>
       <div class="modal-title epi">Anuluj rezerwację</div>
@@ -748,7 +749,7 @@
         <textarea class="finp ftxt" x-model="cancelMsg" placeholder="np. Zachorowałem/am, wyjazd, inna przyczyna..."></textarea>
       </div>
       <div class="mact">
-        <button class="btn-cancel" @click="showCancelModal=false">Wróć</button>
+        <button class="btn-cancel" @click="closeCancelModal()">Wróć</button>
         <button class="apill no" style="flex:2;padding:13px;font-size:14px;border-radius:var(--r)" @click="doCancel()">❌ Potwierdź anulowanie</button>
       </div>
     </div>
@@ -902,10 +903,13 @@
 <script>
 // firebaseConfig ładowany z firebase-config.js (patrz: <script src="firebase-config.js">)
 
+const BUILD_VERSION = '0.5.0';
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
 const fbDb  = firebase.firestore();
 let _pendingLoginEmail = '';
+
+document.getElementById('buildStamp').textContent = BUILD_VERSION;
 
 function showLoginError(message){
   const err = document.getElementById('lerr');
@@ -1828,6 +1832,11 @@ function app(){
       this.toast('❌ Odrzucono');
     },
     openCancelModal(b){ this.cancelTarget=b; this.cancelMsg=''; this.showCancelModal=true; },
+    closeCancelModal(){
+      this.showCancelModal=false;
+      this.cancelTarget=null;
+      this.cancelMsg='';
+    },
     openDeleteModal(b){
       this.deleteTarget=b;
       this.showDeleteModal=true;
@@ -1847,7 +1856,7 @@ function app(){
         bookingTime:this.fmtTime(b.startTime,0)+' – '+this.fmtTime(b.startTime,b.duration),
         bookingLoc:this.lName(b.location),horse:b.horse||'',
         message:(this.fullName(this.currentUser)||this.currentUser.email)+' anulował(a) rezerwację'+(this.cancelMsg?' — '+this.cancelMsg:'')});
-      this.showCancelModal=false; this.cancelTarget=null; this.cancelMsg='';
+      this.closeCancelModal();
       this.toast('❌ Rezerwacja anulowana');
     },
     openEditPlace(b){this.editPlaceB=b;this.editPlaceLoc=b.location;this.editPlaceHorse=b.horse||'';this.showPlaceModal=true;},

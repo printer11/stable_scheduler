@@ -1,4 +1,4 @@
-const CACHE = 'stajnia-v4';
+const CACHE = 'stajnia-v5';
 const ASSETS = ['/manifest.json'];
 
 self.addEventListener('install', e => {
