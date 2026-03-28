@@ -174,6 +174,54 @@
       color:var(--muted);
       font-size:12px;
     }
+    .policy-box{
+      margin:14px 0 16px;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+    }
+    .policy-title{
+      margin:0 0 8px;
+      font-size:11px;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+    }
+    .policy-list{
+      display:grid;
+      gap:7px;
+      margin:0;
+      padding:0;
+      list-style:none;
+    }
+    .policy-item{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .policy-dot{
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      margin-top:-1px;
+      background:rgba(104,116,109,0.12);
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+    }
+    .policy-item.ok{color:var(--green-strong)}
+    .policy-item.ok .policy-dot{background:rgba(28,124,84,0.14);color:var(--green)}
+    .policy-item.bad{color:var(--red)}
+    .policy-item.bad .policy-dot{background:rgba(186,26,26,0.12);color:var(--red)}
     .actions{
       display:flex;
       flex-wrap:wrap;
@@ -245,6 +293,17 @@
           <input class="input" id="newPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Minimum 6 znaków" required>
         </div>
 
+        <div class="policy-box">
+          <p class="policy-title">Wymagania hasła</p>
+          <ul class="policy-list" id="passwordPolicyList">
+            <li class="policy-item" data-rule="length"><span class="policy-dot">•</span><span>Od 6 do 24 znaków</span></li>
+            <li class="policy-item" data-rule="lower"><span class="policy-dot">•</span><span>Co najmniej 1 mała litera</span></li>
+            <li class="policy-item" data-rule="upper"><span class="policy-dot">•</span><span>Co najmniej 1 wielka litera</span></li>
+            <li class="policy-item" data-rule="number"><span class="policy-dot">•</span><span>Co najmniej 1 cyfra</span></li>
+            <li class="policy-item" data-rule="special"><span class="policy-dot">•</span><span>Co najmniej 1 znak specjalny</span></li>
+          </ul>
+        </div>
+
         <div class="field">
           <label class="label" for="confirmPassword">Powtórz hasło</label>
           <input class="input" id="confirmPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Powtórz nowe hasło" required>
@@ -283,12 +342,22 @@
       accountEmail: document.getElementById('accountEmail'),
       newPassword: document.getElementById('newPassword'),
       confirmPassword: document.getElementById('confirmPassword'),
+      passwordPolicyList: document.getElementById('passwordPolicyList'),
       resetHint: document.getElementById('resetHint'),
       submitReset: document.getElementById('submitReset'),
       defaultActions: document.getElementById('defaultActions'),
       openAppLink: document.getElementById('openAppLink'),
       backLinkReset: document.getElementById('backLinkReset'),
       footerNote: document.getElementById('footerNote')
+    };
+
+    const PASSWORD_POLICY = {
+      minLength: 6,
+      maxLength: 24,
+      requireLowercase: true,
+      requireUppercase: true,
+      requireNumber: true,
+      requireSpecial: true
     };
 
     function getParam(name) {
@@ -317,6 +386,41 @@
       ui.openAppLink.href = target;
       ui.backLinkReset.href = target;
       ui.defaultActions.hidden = false;
+    }
+
+    function evaluatePassword(password) {
+      return {
+        length: password.length >= PASSWORD_POLICY.minLength && password.length <= PASSWORD_POLICY.maxLength,
+        lower: !PASSWORD_POLICY.requireLowercase || /[a-z]/.test(password),
+        upper: !PASSWORD_POLICY.requireUppercase || /[A-Z]/.test(password),
+        number: !PASSWORD_POLICY.requireNumber || /[0-9]/.test(password),
+        special: !PASSWORD_POLICY.requireSpecial || /[^A-Za-z0-9]/.test(password)
+      };
+    }
+
+    function updatePasswordPolicyUi(password) {
+      const checks = evaluatePassword(password);
+      ui.passwordPolicyList?.querySelectorAll('[data-rule]').forEach((item) => {
+        const rule = item.getAttribute('data-rule');
+        const ok = !!checks[rule];
+        item.classList.toggle('ok', ok);
+        item.classList.toggle('bad', password.length > 0 && !ok);
+        const dot = item.querySelector('.policy-dot');
+        if (dot) {
+          dot.textContent = ok ? '✓' : password.length > 0 ? '!' : '•';
+        }
+      });
+      return checks;
+    }
+
+    function passwordValidationMessage(password) {
+      const checks = updatePasswordPolicyUi(password);
+      if (!checks.length) return 'Hasło musi mieć od 6 do 24 znaków.';
+      if (!checks.lower) return 'Hasło musi zawierać co najmniej 1 małą literę.';
+      if (!checks.upper) return 'Hasło musi zawierać co najmniej 1 wielką literę.';
+      if (!checks.number) return 'Hasło musi zawierać co najmniej 1 cyfrę.';
+      if (!checks.special) return 'Hasło musi zawierać co najmniej 1 znak specjalny.';
+      return '';
     }
 
     function showResetForm(email) {
@@ -377,9 +481,10 @@
       const password = ui.newPassword.value.trim();
       const confirm = ui.confirmPassword.value.trim();
       const actionCode = getParam('oobCode');
+      const passwordError = passwordValidationMessage(password);
 
-      if (password.length < 6) {
-        setStatus('error', 'Hasło jest za krótkie', 'Hasło musi mieć co najmniej 6 znaków.');
+      if (passwordError) {
+        setStatus('error', 'Hasło nie spełnia wymagań', passwordError);
         return;
       }
 
@@ -405,6 +510,12 @@
         setStatus('error', 'Reset nie powiódł się', message);
       }
     });
+
+    ui.newPassword.addEventListener('input', () => {
+      updatePasswordPolicyUi(ui.newPassword.value.trim());
+    });
+
+    updatePasswordPolicyUi('');
 
     (async function init() {
       const mode = getParam('mode');
